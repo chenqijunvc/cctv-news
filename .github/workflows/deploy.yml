@@ -1,16 +1,16 @@
 # CCTV News Archive - Cloudflare Pages Deployment
 
-
 name: Deploy to Cloudflare Pages
 
 permissions:
-  contents: read
+  # FIX: Change 'read' to 'write' to allow the final 'git push' to succeed.
+  contents: write
   deployments: write
 
 on:
   schedule:
     # Run twice daily at 8 AM and 8 PM Beijing time (UTC+8)
-  - cron: '0 1,13 * * *'  # 9 AM and 9 PM Beijing time (UTC+8)
+    - cron: '0 1,13 * * *'  # 9 AM and 9 PM Beijing time (UTC+8)
   push:
     branches: [ main ]
   workflow_dispatch:  # Allow manual trigger
@@ -19,9 +19,15 @@ jobs:
   fetch-and-deploy:
     runs-on: ubuntu-latest
     
+    # Note: Job-level permissions can override workflow-level permissions if needed, 
+    # but the above global setting is sufficient here.
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      # NOTE: If this job is triggered by a 'schedule' event, you might need a token
+      # to clone the repository, but with the 'contents: write' permission, 
+      # the default GITHUB_TOKEN should handle this.
       
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -60,12 +66,14 @@ jobs:
         
     - name: Commit updated data (if any)
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        # Use the official bot email to ensure the commit is correctly attributed
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         git add assets/
         if git diff --staged --quiet; then
           echo "No new data to commit"
         else
           git commit -m "📰 Auto-update: $(date +'%Y-%m-%d %H:%M') Beijing time [skip ci]"
+          # The 'git push' command will now succeed due to 'contents: write' permission
           git push
         fi
