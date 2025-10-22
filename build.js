@@ -1,13 +1,63 @@
 const fs = require('fs-extra');
 const path = require('path');
 const moment = require('moment');
+const { GoogleGenAI } = require('@google/genai');
+
+// Load local environment variables for development
+if (fs.existsSync('.env.local')) {
+  require('dotenv').config({ path: '.env.local' });
+}
 
 // Build script to generate static website from JSON data
 class NewsArchiveBuilder {
-  constructor() {
+  constructor(options = {}) {
     this.assetsDir = './assets';
     this.outputDir = './dist';
+    this.analysisDir = './analysis';
     this.templateDir = './templates';
+    this.readAnalysisMode = options.readAnalysis || false;
+    this.genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'your-api-key-here' });
+  }
+
+  // Extract summary from content field (text after first colon, strip HTML)
+  extractSummaryFromContent(content, maxLength = 200) {
+    if (!content) return '';
+    
+    // Remove HTML tags
+    const textContent = content.replace(/<[^>]*>/g, '');
+    
+    // Find the first colon and take everything after it
+    const colonIndex = textContent.indexOf('：');
+    if (colonIndex !== -1) {
+      return textContent.substring(colonIndex + 1).trim();
+    }
+    
+    // Fallback: if no Chinese colon, try regular colon
+    const regularColonIndex = textContent.indexOf(':');
+    if (regularColonIndex !== -1) {
+      return textContent.substring(regularColonIndex + 1).trim();
+    }
+    
+    // If no colon found, return the whole text
+    return textContent.trim();
+  }
+
+  // Truncate text and add read more link
+  truncateSummary(text, maxLength = 100) {
+    if (!text) return '';
+    
+    if (text.length <= maxLength) {
+      return text;
+    }
+    
+    const truncated = text.substring(0, maxLength).trim();
+    return truncated;
+  }
+
+  // Clean title by removing bracketed prefixes like [视频]
+  cleanTitle(title) {
+    if (!title) return '';
+    return title.replace(/^\[[^\]]*\]\s*/, '');
   }
 
   async build() {
@@ -16,6 +66,7 @@ class NewsArchiveBuilder {
     // Clean and create output directory
     await fs.remove(this.outputDir);
     await fs.ensureDir(this.outputDir);
+    await fs.ensureDir(this.analysisDir);
     
     // Copy static assets
     await this.copyStaticAssets();
@@ -102,8 +153,16 @@ class NewsArchiveBuilder {
           // Collect categories
           if (data.videoList) {
             data.videoList.forEach(video => {
-              const category = video.news_hl_tag || 'General';
-              index.categories[category] = (index.categories[category] || 0) + 1;
+              if (video.news_hl_tag) {
+                // Split by common delimiters and clean up
+                const categories = video.news_hl_tag.split(/[,\s]+/).filter(cat => cat.trim());
+                categories.forEach(cat => {
+                  const cleanCat = cat.trim();
+                  if (cleanCat && cleanCat !== 'General') {
+                    index.categories[cleanCat] = (index.categories[cleanCat] || 0) + 1;
+                  }
+                });
+              }
             });
           }
           
@@ -130,99 +189,498 @@ class NewsArchiveBuilder {
     return index;
   }
 
+  // Generate AI-powered daily investment analysis using Gemini
+  async generateDailySummary() {
+    const today = moment().format('YYYYMMDD');
+    const todayFile = path.join(this.assetsDir, '2025', `${today}.json`);
+    const analysisFile = path.join(this.analysisDir, `${today}.json`);
+    
+    // If in read mode, try to read existing analysis
+    if (this.readAnalysisMode) {
+      if (await fs.pathExists(analysisFile)) {
+        console.log(`📖 Reading existing analysis for ${today}`);
+        try {
+          const savedAnalysis = await fs.readJson(analysisFile);
+          return {
+            ...savedAnalysis,
+            has_data: true
+          };
+        } catch (error) {
+          console.warn(`⚠️ Failed to read saved analysis, generating new:`, error.message);
+        }
+      } else {
+        console.log(`⚠️ No existing analysis found for ${today}, generating new`);
+      }
+    }
+    
+    // Generate new analysis
+    
+    try {
+      const data = await fs.readJson(todayFile);
+      const newsItems = data.videoList || [];
+      
+      if (newsItems.length === 0) {
+        const emptyResult = {
+          investment_thesis: '今日暂无新闻数据',
+          total_news: 0,
+          sector_opportunities: [],
+          policy_catalysts: [],
+          risk_factors: [],
+          actionable_insights: [],
+          market_outlook: '',
+          shareable_insight: '',
+          has_data: false
+        };
+        const timestamp = moment().format('YYYYMMDD_HHmmss');
+        const analysisWithMeta = {
+          ...emptyResult,
+          generated_at: timestamp,
+          news_date: today
+        };
+        await fs.writeJson(analysisFile, analysisWithMeta);
+        console.log(`💾 Saved empty analysis to ${analysisFile}`);
+        return emptyResult;
+      }
+
+      // Check if API key is available
+      if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your-api-key-here' || process.env.GEMINI_API_KEY === 'your_local_gemini_api_key_here') {
+        console.log('ℹ️  Gemini API key not configured, using fallback summary');
+        const fallbackResult = this.generateFallbackSummary(newsItems);
+        const timestamp = moment().format('YYYYMMDD_HHmmss');
+        const analysisWithMeta = {
+          ...fallbackResult,
+          generated_at: timestamp,
+          news_date: today
+        };
+        await fs.writeJson(analysisFile, analysisWithMeta);
+        console.log(`💾 Saved fallback analysis to ${analysisFile}`);
+        return fallbackResult;
+      }
+
+      // Prepare news data for Gemini - include full content for all items
+      const newsText = newsItems.map((news, index) => {
+        const baseInfo = `${index + 1}. ${this.cleanTitle(news.video_title)}\n   ${news.brief || '暂无简介'}\n   分类: ${news.news_hl_tag || '未分类'}`;
+        
+        if (news.video_detail?.content) {
+          return `${baseInfo}\n   全文内容: ${news.video_detail.content}`;
+        }
+        return baseInfo;
+      }).join('\n\n');
+
+      const prompt = `你是一名专注于政策驱动投资的顶尖策略分析师，擅长从新闻联播中识别结构性投资机会。请基于以下${newsItems.length}条今日新闻，为机构投资者提供可直接纳入投资决策的深度分析。
+
+--- 今日新闻 ---
+${newsText}
+--- 结束 ---
+
+**核心任务：识别政策驱动的结构性趋势投资机会，评估投资时间窗口，提供具体配置建议**
+
+请严格按照以下JSON格式返回分析结果：
+
+{
+  "summary": {
+    "investment_quote": "根据今日内容，一句精炼的极具传播价值的投资金句（30字以内，要有洞察力和转发价值）",
+    "core_logic": "用一段话（100-150字）概括今日新闻反应的最核心的投资逻辑，要有冲击力和记忆点"
+  },
+  "policy_catalysts": [
+    {
+      "theme": "政策主题（如：数字经济基建、农业现代化等）",
+      "impact": "政策对市场的影响描述，如有资金规模请注明",
+      "investment_angle": "一句话叙述具体的投资角度"
+    }
+  ],
+  "sector_opportunities": [
+    {
+      "sector": "具体行业细分（避免宽泛表述），可列出多个",
+      "conviction": "高确定性/中确定性/初步判断", （严格选择其一）
+      "timeframe": "立即布局/近期关注/长期跟踪",（严格选择其一）
+      "actionable_advice": "对可能受益的细分领域或股票类型给出明确的可执行投资建议"
+    }
+  ],
+  "risk_factors": [
+    {
+      "factor": "具体风险因素描述",
+      "impact": "风险对市场的影响",
+      "mitigation": "对冲或规避的投资建议"
+    }
+  ]
+}
+
+**投资分析框架要求：**
+
+1. **政策驱动优先** - 重点分析有明确政策背书的机会
+2. **数据支撑** - 每个判断尽量引用新闻中的具体数据（金额、百分比、时间等）
+3. **产业链思维** - 从上游到下游分析受益环节
+4. **时间窗口明确** - 区分不同时间维度的机会
+5. **风险收益匹配** - 每个机会都要对应风险评估
+
+**内容质量要求：**
+
+✅ **必须做到**：
+- 每个建议都要具体到细分领域或公司类型
+- 所有内容必须基于当日日新闻联播，尽量提供新闻中具体数据和规模的支持
+- 区分政策预期与现实落地的时间差
+- 用投资者熟悉的专业术语但避免jargon
+- 同类项内容避免重复
+
+❌ **严格避免**：
+- 泛泛而谈的行业推荐（如"关注科技股"）
+- 没有数据支撑的主观判断
+- 与新闻内容无关的常规建议
+- 使用英文术语或混合表达
+
+**输出规范：**
+- 全部使用纯中文，专业但易懂
+- 投资建议要可立即执行
+- 风险提示要有具体应对方案
+- 保持客观中立，不夸大收益
+
+现在，请基于今日新闻联播内容，提供专业的趋势投资分析：`;
+
+      const response = await this.genAI.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt
+      });
+      
+      const text = response.candidates[0].content.parts[0].text;
+      console.log('Gemini response text:', text);
+      
+      // Parse JSON response
+      let analysis;
+      try {
+        // Clean the response text to extract JSON
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysis = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (parseError) {
+        console.warn('⚠️ Failed to parse Gemini response, using fallback:', parseError.message);
+        analysis = {
+          summary: {
+            investment_quote: '投资需谨慎，关注政策导向',
+            core_logic: `今日共${newsItems.length}条新闻，主要涉及经济、科技、社会等多个领域。`
+          },
+          policy_catalysts: [],
+          sector_opportunities: [],
+          risk_factors: []
+        };
+      }
+      
+      // Ensure all fields are present with defaults
+      analysis.summary = analysis.summary || {
+        investment_quote: '投资需谨慎，关注政策导向',
+        core_logic: `今日共${newsItems.length}条新闻，主要涉及经济、科技、社会等多个领域。`
+      };
+      analysis.policy_catalysts = analysis.policy_catalysts || [];
+      analysis.sector_opportunities = analysis.sector_opportunities || [];
+      analysis.risk_factors = analysis.risk_factors || [];
+      
+      console.log('Parsed analysis:', analysis);
+
+      const result = {
+        summary: analysis.summary,
+        total_news: newsItems.length,
+        policy_catalysts: analysis.policy_catalysts,
+        sector_opportunities: analysis.sector_opportunities,
+        risk_factors: analysis.risk_factors,
+        has_data: true
+      };
+
+      // Save analysis with timestamp
+      const timestamp = moment().format('YYYYMMDD_HHmmss');
+      const analysisWithMeta = {
+        ...result,
+        generated_at: timestamp,
+        news_date: today
+      };
+      await fs.writeJson(analysisFile, analysisWithMeta);
+      console.log(`💾 Saved analysis to ${analysisFile}`);
+
+      return result;
+      
+    } catch (error) {
+      console.warn(`⚠️ Could not generate AI summary for today (${today}.json):`, error.message);
+      return {
+        summary: {
+          investment_quote: '投资需谨慎，关注政策导向',
+          core_logic: '今日新闻数据暂未更新或AI分析服务不可用'
+        },
+        total_news: '--',
+        policy_catalysts: [],
+        sector_opportunities: [],
+        risk_factors: [],
+        has_data: false
+      };
+    }
+  }
+
+  // Generate fallback summary when AI is not available
+  generateFallbackSummary(newsItems) {
+    // Extract categories and count them
+    const categoryCount = {};
+    newsItems.forEach(news => {
+      if (news.news_hl_tag) {
+        const categories = news.news_hl_tag.split(/[,\s]+/).filter(cat => cat.trim());
+        categories.forEach(cat => {
+          const cleanCat = cat.trim();
+          if (cleanCat && cleanCat !== 'General') {
+            categoryCount[cleanCat] = (categoryCount[cleanCat] || 0) + 1;
+          }
+        });
+      }
+    });
+    
+    // Get top categories
+    const topCategories = Object.entries(categoryCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([cat, count]) => `${cat}(${count}条)`);
+    
+    const summaryText = topCategories.length > 0 ? 
+      `今日共${newsItems.length}条新闻，主要涉及${topCategories.join('、')}等领域。` :
+      `今日共${newsItems.length}条新闻，涵盖多个重要领域。`;
+
+    return {
+      summary: {
+        investment_quote: '投资需谨慎，关注政策导向',
+        core_logic: summaryText
+      },
+      total_news: newsItems.length,
+      policy_catalysts: [],
+      sector_opportunities: [],
+      risk_factors: [],
+      has_data: true
+    };
+  }
+
   async generateHomePage(index) {
     console.log('🏠 Generating home page...');
-    
+
+    // Generate AI-powered daily summary
+    const dailySummary = await this.generateDailySummary();
+
     const html = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCTV 新闻联播历史数据库</title>
-  <link rel="stylesheet" href="/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Trend Following AI - 你的趋势投资AI助手</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>📺 CCTV 新闻联播历史数据库</h1>
-            <p>收录了从 ${moment(index.dateRange.start, 'YYYYMMDD').format('YYYY年MM月DD日')} 至 ${moment(index.dateRange.end, 'YYYYMMDD').format('YYYY年MM月DD日')} 的新闻数据</p>
+            <a href="/" class="site-title">trendfollowing.ai</a>
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active">CCTV Trend</a>
+                <!-- <a href="#" class="nav-link">Product 2</a> -->
+                <!-- <a href="#" class="nav-link">Product 3</a> -->
+            </nav>
         </div>
     </header>
-    
+
     <main class="container">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>总新闻数</h3>
-                <p class="big-number">${index.totalNews.toLocaleString()}</p>
+        <!-- Investment Analysis Dashboard -->
+        <section class="investment-dashboard">
+            <div class="dashboard-header">
+                <h2>新闻联播趋势洞察</h2>
+                <div class="dashboard-meta">
+                    <span class="update-time">更新时间: ${dailySummary.has_data ? moment().format('MM-DD HH:mm') : '暂无数据'}</span>
+                    <span class="news-count">${dailySummary.total_news || 0} 条新闻</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>覆盖天数</h3>
-                <p class="big-number">${moment(index.dateRange.end, 'YYYYMMDD').diff(moment(index.dateRange.start, 'YYYYMMDD'), 'days')}</p>
+
+            <!-- Core Insights Hero Section -->
+            <div class="core-insights">
+                <div class="insights-content">
+                    <div class="investment-quote">
+                        <div class="quote-icon"></div>
+                        <div class="quote-text">
+                            ${dailySummary.summary?.investment_quote || '投资需谨慎，关注政策导向'}
+                        </div>
+                        <button class="btn-copy" onclick="copyQuote()" title="复制金句">
+                            分享
+                        </button>
+                    </div>
+                    <div class="core-logic">
+                        <h3>核心逻辑</h3>
+                        <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>数据年份</h3>
-                <p class="big-number">${Object.keys(index.years).length}</p>
+
+            <!-- Opportunity Heatmap -->
+            <div class="opportunity-heatmap">
+                <div class="heatmap-grid">
+                    <!-- Policy Catalysts -->
+                    ${dailySummary.policy_catalysts?.length > 0 ? `
+                    <div class="heatmap-section">
+                        <h3 class="section-title">
+                            宏观视角
+                        </h3>
+                        <div class="cards-grid">
+                            ${dailySummary.policy_catalysts.map(policy => `
+                                <div class="policy-card heatmap-card">
+                                    <h4>${policy.theme}</h4>
+                                    <p class="card-preview">${policy.impact}</p>
+                                    <div class="card-meta">
+                                        <span class="meta-tag">${policy.investment_angle || '政策影响'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Investment Opportunities -->
+                    ${dailySummary.sector_opportunities?.length > 0 ? `
+                    <div class="heatmap-section">
+                        <h3 class="section-title">
+                            投资机会
+                        </h3>
+                        <div class="cards-grid">
+                            ${dailySummary.sector_opportunities.map((opportunity, index) => {
+                                // Calculate combined score for 3-step color theme
+                                let convictionScore = 0;
+                                if (opportunity.conviction?.includes('高确定性')) convictionScore = 3;
+                                else if (opportunity.conviction?.includes('中确定性')) convictionScore = 2;
+                                else convictionScore = 1;
+                                
+                                let timeframeScore = 0;
+                                if (opportunity.timeframe?.includes('立即布局')) timeframeScore = 3;
+                                else if (opportunity.timeframe?.includes('近期关注')) timeframeScore = 2;
+                                else timeframeScore = 1;
+                                
+                                const combinedScore = Math.min(convictionScore + timeframeScore, 6); // Max 6
+                                let convictionClass = 'conviction-low';
+                                let timeframeClass = 'timeframe-low';
+                                if (combinedScore >= 5) {
+                                    convictionClass = 'conviction-high';
+                                    timeframeClass = 'timeframe-high';
+                                } else if (combinedScore >= 3) {
+                                    convictionClass = 'conviction-medium';
+                                    timeframeClass = 'timeframe-medium';
+                                }
+                                
+                                return `
+                                <div class="opportunity-card heatmap-card">
+                                    <h4>${opportunity.sector}</h4>
+                                    <p class="card-preview">${opportunity.actionable_advice}</p>
+                                    <div class="card-meta">
+                                        <span class="meta-tag ${convictionClass}">${opportunity.conviction || '待评估'}</span>
+                                        <span class="meta-tag ${timeframeClass}">${opportunity.timeframe || '短期'}</span>
+                                    </div>
+                                </div>
+                            `}).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Risk Assessment -->
+                    ${dailySummary.risk_factors?.length > 0 ? `
+                    <div class="heatmap-section">
+                        <h3 class="section-title">
+                            风险因子
+                        </h3>
+                        <div class="cards-grid">
+                            ${dailySummary.risk_factors.map(risk => `
+                                <div class="risk-card heatmap-card">
+                                    <h4>${risk.factor}</h4>
+                                    <p class="card-preview">${risk.impact}</p>
+                                    <div class="card-meta">
+                                        <span class="meta-tag risk-level">${risk.mitigation}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>新闻分类</h3>
-                <p class="big-number">${Object.keys(index.categories).length}</p>
-            </div>
-        </div>
-        
-        <section class="recent-news">
-            <h2>📰 最新新闻</h2>
+        </section>
+
+        <script>
+            // Pass analysis data to JavaScript
+            window.analysisData = ${JSON.stringify({
+                policy_catalysts: dailySummary.policy_catalysts || [],
+                sector_opportunities: dailySummary.sector_opportunities || [],
+                risk_factors: dailySummary.risk_factors || [],
+                summary: dailySummary.summary || {}
+            }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')};
+        </script>
+        <section>
+            <h2>最新新闻</h2>
             <div class="news-grid">
                 ${index.recentNews.slice(0, 6).map(news => `
                     <div class="news-card">
-                        <h4>${news.video_title}</h4>
-                        <p class="news-meta">
-                            ${moment(news.date, 'YYYYMMDD').format('YYYY-MM-DD')} | 
-                            ${news.news_hl_tag || 'General'} |
-                            ${news.video_length}
-                        </p>
-                        <p class="news-brief">${news.brief || ''}</p>
-                        <a href="/archive/${news.year}/${news.date}.html" class="read-more">查看详情</a>
+                        <a href="/archive/${news.year}/${news.date}.html#${news.video_id}" class="news-title-link">
+                            <h4>${this.cleanTitle(news.video_title)}</h4>
+                        </a>
+                        <div class="news-meta">
+                            <span>${moment(news.date, 'YYYYMMDD').format('YYYY-MM-DD')}</span>
+                        </div>
+                        <p class="news-brief">${this.truncateSummary(this.extractSummaryFromContent(news.video_detail?.content), 100)}...</p>
+                        <a href="/archive/${news.year}/${news.date}.html#${news.video_id}" class="read-more">阅读更多</a>
                     </div>
                 `).join('')}
             </div>
         </section>
-        
-        <section class="archive-navigation">
-            <h2>📅 按年份浏览</h2>
-            <div class="year-grid">
-                ${Object.entries(index.years).sort().reverse().map(([year, data]) => `
-                    <div class="year-card">
-                        <h3><a href="/archive/${year}/">${year}年</a></h3>
-                        <p>${data.totalNews} 条新闻</p>
-                        <p>${Object.keys(data.months).length} 个月</p>
-                    </div>
-                `).join('')}
-            </div>
-        </section>
-        
+
         <section class="search-section">
-            <h2>🔍 搜索新闻</h2>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索新闻标题、内容...">
-                <button onclick="searchNews()">搜索</button>
+            <h2>搜索新闻</h2>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="输入关键词搜索...">
+            </div>
+            <div class="filter-controls">
+                <select id="yearFilter">
+                    <option value="">选择年份</option>
+                    ${Object.keys(index.years).sort().reverse().map(year => `<option value="${year}">${year}年</option>`).join('')}
+                </select>
+                <select id="monthFilter" disabled>
+                    <option value="">选择月份</option>
+                    ${Array.from({length: 12}, (_, i) => {
+                      const month = (i + 1).toString().padStart(2, '0');
+                      return `<option value="${month}">${month}月</option>`;
+                    }).join('')}
+                </select>
+                <select id="dateFilter" disabled>
+                    <option value="">选择日期</option>
+                    ${Array.from({length: 31}, (_, i) => {
+                      const date = (i + 1).toString().padStart(2, '0');
+                      return `<option value="${date}">${date}日</option>`;
+                    }).join('')}
+                </select>
+                <select id="categoryFilter">
+                    <option value="">所有分类</option>
+                    ${Object.keys(index.categories).sort().map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                </select>
             </div>
             <div id="searchResults"></div>
         </section>
+
+        <!-- <section>
+            <h2>按年份浏览</h2>
+            <div class="archive-nav">
+                ${Object.entries(index.years).sort().reverse().map(([year, data]) => `
+                    <a href="/archive/${year}/" class="year-link">${year}年</a>
+                `).join('')}
+            </div>
+        </section> -->
     </main>
-    
-  <footer>
-    <div class="container">
-      <p>数据来源：CCTV 官网 | 仅供学习使用</p>
-    </div>
-  </footer>
-    
-  <script src="/js/main.js"></script>
-    <script>
-        // Embed news index for search
-        window.newsIndex = ${JSON.stringify(index)};
-    </script>
+
+    <footer>
+        <div class="container">
+            <p>数据来源：CCTV 官网 | 仅供学习使用</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
 </body>
 </html>`;
     
@@ -258,25 +716,37 @@ class NewsArchiveBuilder {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${year}年新闻归档 - CCTV 新闻联播</title>
-  <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1><a href="../../">📺 CCTV 新闻联播</a> > ${year}年</h1>
-            <p>共 ${yearData.totalNews} 条新闻</p>
+            <a href="/" class="site-title">trendfollowing.ai</a>
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active">CCTV Trend</a>
+                <!-- <a href="#" class="nav-link">Product 2</a> -->
+                <!-- <a href="#" class="nav-link">Product 3</a> -->
+            </nav>
         </div>
     </header>
-    
+
     <main class="container">
-        <div class="month-grid">
+        <h1>${year}年</h1>
+        <p style="text-align: center; margin-bottom: 3rem; color: #64748b;">
+            共 ${yearData.totalNews} 条新闻
+        </p>
+
+        <div class="news-grid">
             ${Object.entries(yearData.months).map(([month, days]) => `
-                <div class="month-card">
+                <div class="news-card">
                     <h3>${parseInt(month)}月</h3>
-                    <div class="day-list">
+                    <div style="margin-top: 1rem;">
                         ${days.map(day => `
-                            <a href="${day.date}.html" class="day-link">
-                                ${day.date.substring(6, 8)}日 (${day.newsCount})
+                            <a href="${day.date}.html" style="display: block; padding: 0.5rem 0; color: var(--accent-color); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                ${day.date.substring(6, 8)}日 (${day.newsCount}条)
                             </a>
                         `).join('')}
                     </div>
@@ -284,8 +754,14 @@ class NewsArchiveBuilder {
             `).join('')}
         </div>
     </main>
-    
-  <script src="/js/main.js"></script>
+
+    <footer>
+        <div class="container">
+            <p>数据来源：CCTV 官网 | 仅供学习使用</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
 </body>
 </html>`;
   }
@@ -301,34 +777,46 @@ class NewsArchiveBuilder {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${moment(dayInfo.date, 'YYYYMMDD').format('YYYY年MM月DD日')}新闻 - CCTV 新闻联播</title>
-  <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1><a href="/">📺 CCTV 新闻联播</a> > <a href="/archive/${dayInfo.date.substring(0, 4)}/">${dayInfo.date.substring(0, 4)}年</a> > ${moment(dayInfo.date, 'YYYYMMDD').format('MM月DD日')}</h1>
-            <p>共 ${data.videoList.length} 条新闻</p>
+            <a href="/" class="site-title">trendfollowing.ai</a>
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active">CCTV Trend</a>
+                <!-- <a href="#" class="nav-link">Product 2</a> -->
+                <!-- <a href="#" class="nav-link">Product 3</a> -->
+            </nav>
         </div>
     </header>
-    
+
     <main class="container">
+        <h1>${moment(dayInfo.date, 'YYYYMMDD').format('YYYY年MM月DD日')}</h1>
+        <p style="text-align: center; margin-bottom: 3rem; color: #64748b;">
+            共 ${data.videoList.length} 条新闻
+        </p>
+
         <div class="news-list">
             ${data.videoList.map(video => `
-                <article class="news-item">
-                    <h2>${video.video_title}</h2>
-                    <div class="news-meta">
-                        <span class="time">⏰ ${video.video_length}</span>
-                        <span class="category">🏷️ ${video.news_hl_tag || 'General'}</span>
-                        <span class="date">📅 ${video.pub_date}</span>
+                <article id="${video.video_id}" class="news-item">
+                    <h2>${this.cleanTitle(video.video_title)}</h2>
+                    <div class="news-meta" style="flex-direction: row; flex-wrap: wrap; gap: 1rem;">
+                        <span>⏰ ${video.video_length}</span>
+                        <span>🏷️ ${video.news_hl_tag || 'General'}</span>
+                        <span>📅 ${video.pub_date}</span>
                     </div>
-                    ${video.video_image ? `<img src="${video.video_image}" alt="${video.video_title}" class="news-image">` : ''}
+                    ${video.video_image ? `<img src="${video.video_image}" alt="${video.video_title}" class="news-image" style="max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0;">` : ''}
                     <p class="news-brief">${video.brief || ''}</p>
                     ${video.video_detail && video.video_detail.content ? `
-                        <div class="news-content">
+                        <div class="news-content" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                             ${video.video_detail.content}
                         </div>
                     ` : ''}
-                    <div class="news-actions">
+                    <div class="news-actions" style="margin-top: 2rem;">
                         <a href="${video.video_url}" target="_blank" class="btn-primary">观看视频</a>
                         <button onclick="shareNews('${video.video_title}', '${video.video_url}')" class="btn-secondary">分享</button>
                     </div>
@@ -336,8 +824,14 @@ class NewsArchiveBuilder {
             `).join('')}
         </div>
     </main>
-    
-  <script src="/js/main.js"></script>
+
+    <footer>
+        <div class="container">
+            <p>数据来源：CCTV 官网 | 仅供学习使用</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
 </body>
 </html>`;
   }
@@ -369,8 +863,11 @@ class NewsArchiveBuilder {
                 id: video.video_id,
                 title: video.video_title,
                 brief: video.brief || '',
-                category: video.news_hl_tag || 'General',
+                category: video.news_hl_tag || '',
                 date: day.date,
+                year: year,
+                month: day.date.substring(4, 6),
+                day: day.date.substring(6, 8),
                 url: `/archive/${year}/${day.date}.html#${video.video_id}`
               });
             });
@@ -387,7 +884,9 @@ class NewsArchiveBuilder {
 
 // Run the build
 if (require.main === module) {
-  const builder = new NewsArchiveBuilder();
+  const readAnalysis = process.argv.includes('--read-analysis');
+  const builder = new NewsArchiveBuilder({ readAnalysis });
+  console.log(`🏗️ Building in ${readAnalysis ? 'READ ANALYSIS' : 'GENERATE NEW'} mode`);
   builder.build().catch(console.error);
 }
 

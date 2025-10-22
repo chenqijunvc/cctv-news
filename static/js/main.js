@@ -3,6 +3,8 @@
 class NewsArchive {
     constructor() {
         this.searchIndex = null;
+        this.currentPage = 1;
+        this.pageSize = 10;
         this.init();
     }
 
@@ -12,9 +14,8 @@ class NewsArchive {
             await this.loadSearchIndex();
             this.initSearch();
         }
-        
+
         this.initEventListeners();
-        this.initTheme();
     }
 
     async loadSearchIndex() {
@@ -29,20 +30,69 @@ class NewsArchive {
 
     initSearch() {
         const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const yearFilter = document.getElementById('yearFilter');
+        const monthFilter = document.getElementById('monthFilter');
+        const dateFilter = document.getElementById('dateFilter');
         const searchResults = document.getElementById('searchResults');
         
         if (!searchInput || !searchResults) return;
 
+        const performSearch = () => {
+            const query = searchInput.value;
+            const category = categoryFilter ? categoryFilter.value : '';
+            const year = yearFilter ? yearFilter.value : '';
+            const month = monthFilter ? monthFilter.value : '';
+            const date = dateFilter ? dateFilter.value : '';
+            this.performSearch(query, category, year, month, date, searchResults);
+        };
+
         let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                this.performSearch(e.target.value, searchResults);
-            }, 300);
+            searchTimeout = setTimeout(performSearch, 300);
         });
+
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', performSearch);
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener('change', (e) => {
+                const selectedYear = e.target.value;
+                if (monthFilter) {
+                    monthFilter.disabled = !selectedYear;
+                    if (!selectedYear) {
+                        monthFilter.value = '';
+                        if (dateFilter) {
+                            dateFilter.disabled = true;
+                            dateFilter.value = '';
+                        }
+                    }
+                }
+                performSearch();
+            });
+        }
+
+        if (monthFilter) {
+            monthFilter.addEventListener('change', (e) => {
+                const selectedMonth = e.target.value;
+                if (dateFilter) {
+                    dateFilter.disabled = !selectedMonth;
+                    if (!selectedMonth) {
+                        dateFilter.value = '';
+                    }
+                }
+                performSearch();
+            });
+        }
+
+        if (dateFilter) {
+            dateFilter.addEventListener('change', performSearch);
+        }
     }
 
-    performSearch(query, resultsContainer) {
+    performSearch(query, category, year, month, date, resultsContainer) {
         if (!query || query.length < 2) {
             resultsContainer.innerHTML = '';
             return;
@@ -53,20 +103,49 @@ class NewsArchive {
             return;
         }
 
-        const results = this.searchIndex.filter(item => {
-            const searchText = `${item.title} ${item.brief}`.toLowerCase();
-            return searchText.includes(query.toLowerCase());
-        }).slice(0, 20); // Limit to 20 results
+        // Show loading state
+        resultsContainer.innerHTML = '<p>🔍 搜索中...</p>';
 
+        // Simulate async search for better UX
+        setTimeout(() => {
+            let results = this.searchIndex.filter(item => {
+                const searchText = `${item.title} ${item.brief}`.toLowerCase();
+                const matchesQuery = searchText.includes(query.toLowerCase());
+                const matchesCategory = !category || item.category.includes(category);
+                const matchesYear = !year || item.year === year;
+                const matchesMonth = !month || item.month === month;
+                const matchesDate = !date || item.day === date;
+                return matchesQuery && matchesCategory && matchesYear && matchesMonth && matchesDate;
+            });
+
+            // Sort by date (latest first)
+            results.sort((a, b) => b.date.localeCompare(a.date));
+
+            this.displaySearchResults(results, query, resultsContainer);
+        }, 200);
+    }
+
+    displaySearchResults(results, query, resultsContainer) {
         if (results.length === 0) {
             resultsContainer.innerHTML = '<p>未找到相关新闻</p>';
             return;
         }
 
-        resultsContainer.innerHTML = `
+        // Reset to first page
+        this.currentPage = 1;
+        this.renderPage(results, query, resultsContainer);
+    }
+
+    renderPage(results, query, resultsContainer) {
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        const pageResults = results.slice(start, end);
+        const totalPages = Math.ceil(results.length / this.pageSize);
+
+        const html = `
             <h3>搜索结果 (${results.length})</h3>
             <div class="search-results-list">
-                ${results.map(item => `
+                ${pageResults.map(item => `
                     <div class="search-result-item">
                         <h4><a href="/${item.url}">${this.highlightText(item.title, query)}</a></h4>
                         <p class="search-meta">
@@ -76,6 +155,50 @@ class NewsArchive {
                         <p class="search-brief">${this.highlightText(item.brief, query)}</p>
                     </div>
                 `).join('')}
+            </div>
+            ${totalPages > 1 ? this.renderPagination(totalPages) : ''}
+        `;
+
+        resultsContainer.innerHTML = html;
+
+        // Add pagination event listeners
+        if (totalPages > 1) {
+            const prevBtn = resultsContainer.querySelector('.prev-page');
+            const nextBtn = resultsContainer.querySelector('.next-page');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (this.currentPage > 1) {
+                        this.currentPage--;
+                        this.renderPage(results, query, resultsContainer);
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (this.currentPage < totalPages) {
+                        this.currentPage++;
+                        this.renderPage(results, query, resultsContainer);
+                    }
+                });
+            }
+        }
+    }
+
+    renderPagination(totalPages) {
+        const hasPrev = this.currentPage > 1;
+        const hasNext = this.currentPage < totalPages;
+
+        return `
+            <div class="pagination">
+                <div class="page-info">
+                    第 ${this.currentPage} 页，共 ${totalPages} 页
+                </div>
+                <div class="page-switch">
+                    <button class="page-btn prev-page" ${!hasPrev ? 'disabled' : ''}>上一页</button>
+                    <button class="page-btn next-page" ${!hasNext ? 'disabled' : ''}>下一页</button>
+                </div>
             </div>
         `;
     }
@@ -111,57 +234,44 @@ class NewsArchive {
                 }
             });
         });
-
-        // Back to top button
-        this.createBackToTopButton();
     }
 
-    createBackToTopButton() {
-        const button = document.createElement('button');
-        button.innerHTML = '↑';
-        button.className = 'back-to-top';
-        button.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #667eea;
-            color: white;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-        `;
-        
-        document.body.appendChild(button);
+    createThemeToggle() {
+        // Removed - no longer needed
+    }
 
-        // Show/hide button based on scroll position
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                button.style.opacity = '1';
-            } else {
-                button.style.opacity = '0';
-            }
-        });
-
-        // Scroll to top when clicked
-        button.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
+    toggleTheme() {
+        // Removed - no longer needed
     }
 
     initTheme() {
-        // Simple dark mode toggle (if needed in the future)
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
-            document.body.classList.add('dark-mode');
+        // Removed - no longer needed
+    }
+
+    createThemeToggle() {
+        const header = document.querySelector('header');
+        if (!header) return;
+
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'theme-toggle';
+        toggleButton.innerHTML = '🌙';
+        toggleButton.title = 'Toggle Dark Mode';
+        toggleButton.addEventListener('click', () => this.toggleTheme());
+
+        header.appendChild(toggleButton);
+    }
+
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // Update toggle button icon
+        const toggleButton = document.querySelector('.theme-toggle');
+        if (toggleButton) {
+            toggleButton.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
         }
     }
 }
@@ -172,6 +282,56 @@ window.searchNews = function() {
     if (searchInput) {
         searchInput.focus();
     }
+};
+
+window.copyQuote = function() {
+    const quoteElement = document.querySelector('.quote-text');
+    if (!quoteElement) {
+        console.warn('Quote element not found');
+        return;
+    }
+
+    const quoteText = quoteElement.textContent.trim();
+    const shareText = `${quoteText} @trendfollowing.ai`;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareText).then(() => {
+        // Show feedback
+        const button = document.querySelector('.btn-copy');
+        if (button) {
+            const originalText = button.textContent;
+            button.textContent = '已复制!';
+            button.style.background = 'var(--success)';
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Failed to copy quote:', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const button = document.querySelector('.btn-copy');
+            if (button) {
+                const originalText = button.textContent;
+                button.textContent = '已复制!';
+                button.style.background = 'var(--success)';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                }, 2000);
+            }
+        } catch (fallbackErr) {
+            console.error('Fallback copy failed:', fallbackErr);
+            alert('复制失败，请手动复制: ' + shareText);
+        }
+        document.body.removeChild(textArea);
+    });
 };
 
 window.shareNews = function(title, url) {
