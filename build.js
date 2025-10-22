@@ -850,9 +850,14 @@ ${newsText}
       news: index.recentNews.slice(0, 50)
     });
     
-    // Search index for client-side search
+    // Search index for client-side search (last 2 years only to reduce file size)
     const searchIndex = [];
+    const currentYear = moment().year();
+    const minYear = currentYear - 2; // Only include last 2 years
+    
     for (const [year, yearData] of Object.entries(index.years)) {
+      if (parseInt(year) < minYear) continue; // Skip older years
+      
       for (const [month, days] of Object.entries(yearData.months)) {
         for (const day of days) {
           const filePath = path.join(this.assetsDir, day.file);
@@ -861,8 +866,8 @@ ${newsText}
             data.videoList.forEach(video => {
               searchIndex.push({
                 id: video.video_id,
-                title: video.video_title,
-                brief: video.brief || '',
+                title: this.cleanTitle(video.video_title),
+                brief: (video.brief || '').substring(0, 200), // Limit brief length
                 category: video.news_hl_tag || '',
                 date: day.date,
                 year: year,
@@ -878,6 +883,7 @@ ${newsText}
       }
     }
     
+    console.log(`📊 Generated search index with ${searchIndex.length} items`);
     await fs.writeJson(path.join(this.outputDir, 'api', 'search.json'), { index: searchIndex });
   }
 }
