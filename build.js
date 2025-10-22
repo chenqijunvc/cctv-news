@@ -212,11 +212,11 @@ class NewsArchiveBuilder {
         </section>
     </main>
     
-    <footer>
-        <div class="container">
-            <p>数据来源：CCTV 官网 | 仅供学习使用 | <a href="https://github.com/china-data/xwlb">GitHub</a></p>
-        </div>
-    </footer>
+  <footer>
+    <div class="container">
+      <p>数据来源：CCTV 官网 | 仅供学习使用</p>
+    </div>
+  </footer>
     
   <script src="/js/main.js"></script>
     <script>

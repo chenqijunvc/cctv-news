@@ -46,13 +46,14 @@ async function fileExists(dateStr) {
 
 // 下载单个日期
 async function downloadDate(dateStr) {
+  // Add force option to allow overwrite
+  let force = false;
+  if (typeof arguments[1] === 'boolean') force = arguments[1];
   try {
-    if (await fileExists(dateStr)) {
+    if (!force && await fileExists(dateStr)) {
       return 'exists';
     }
-    
     await loadData(dateStr);
-    
     // 验证文件是否创建成功
     if (await fileExists(dateStr)) {
       return 'success';
@@ -95,7 +96,26 @@ async function main() {
     if (daysBehind === 0 && !await fileExists(today)) {
       await downloadDate(today);
     }
-    
+    // Always check last 7 days for empty content
+    for (let i = 0; i < 7; i++) {
+      const dateStr = getBeijingTime().subtract(i, 'days').format('YYYYMMDD');
+      const year = dateStr.substring(0, 4);
+      const filePath = path.join(__dirname, `assets/${year}/${dateStr}.json`);
+      if (await fs.pathExists(filePath)) {
+        try {
+          const data = await fs.readJson(filePath);
+          if (
+            (data.total === 0 || !Array.isArray(data.videoList) || data.videoList.length === 0)
+          ) {
+            // 重新下载该日期 (force overwrite)
+            await downloadDate(dateStr, true);
+          }
+        } catch (e) {
+          // 文件损坏也重新下载
+          await downloadDate(dateStr, true);
+        }
+      }
+    }
     return;
   }
   
@@ -103,14 +123,13 @@ async function main() {
   let downloaded = 0;
   let skipped = 0;
   let errors = 0;
-  
+
   const startDate = moment(latestAssetDate, 'YYYYMMDD').add(1, 'day');
   let current = startDate.clone();
-  
+
   while (current.isSameOrBefore(todayMoment)) {
     const dateStr = current.format('YYYYMMDD');
     const result = await downloadDate(dateStr);
-    
     switch (result) {
       case 'success':
         downloaded++;
@@ -123,11 +142,29 @@ async function main() {
         errors++;
         break;
     }
-    
     current.add(1, 'day');
-    
-    // 请求之间的延迟
     await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  // 检查最近7天的文件内容是否为空，若为空则重新下载
+  for (let i = 0; i < 7; i++) {
+    const dateStr = getBeijingTime().subtract(i, 'days').format('YYYYMMDD');
+    const year = dateStr.substring(0, 4);
+    const filePath = path.join(__dirname, `assets/${year}/${dateStr}.json`);
+    if (await fs.pathExists(filePath)) {
+      try {
+        const data = await fs.readJson(filePath);
+        if (
+          (data.total === 0 || !Array.isArray(data.videoList) || data.videoList.length === 0)
+        ) {
+          // 重新下载该日期 (force overwrite)
+          await downloadDate(dateStr, true);
+        }
+      } catch (e) {
+        // 文件损坏也重新下载
+        await downloadDate(dateStr, true);
+      }
+    }
   }
 }
 
