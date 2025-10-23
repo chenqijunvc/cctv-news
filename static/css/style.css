@@ -97,7 +97,7 @@ p {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 0.75rem;
 }
 
 /* Header - Modern Navigation */
@@ -118,10 +118,11 @@ header .container {
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+    position: relative;
 }
 
 .site-title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--primary-teal);
     text-decoration: none;
@@ -130,6 +131,9 @@ header .container {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.2;
 }
 
 .site-title:hover {
@@ -138,9 +142,10 @@ header .container {
 }
 
 .nav-menu {
-    display: flex;
+    display: none;
     gap: 1rem;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .nav-link {
@@ -174,6 +179,93 @@ header .container {
     background: linear-gradient(135deg, rgba(38, 165, 181, 0.1), rgba(15, 76, 92, 0.05));
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(38, 165, 181, 0.15);
+}
+
+/* Menu Toggle Button */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.menu-toggle:hover {
+    background: rgba(38, 165, 181, 0.1);
+    color: var(--primary-teal);
+}
+
+.hamburger {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: currentColor;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.hamburger::before,
+.hamburger::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: currentColor;
+    position: absolute;
+    transition: all 0.3s ease;
+}
+
+.hamburger::before {
+    top: -6px;
+}
+
+.hamburger::after {
+    top: 6px;
+}
+
+/* Mobile menu toggle */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+        order: 2;
+    }
+    
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 0 0 0.5rem 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        flex-direction: column;
+        gap: 0.5rem;
+        order: 3;
+    }
+    
+    .nav-menu.active {
+        display: flex;
+    }
+    
+    .menu-toggle.active .hamburger {
+        background: transparent;
+    }
+    
+    .menu-toggle.active .hamburger::before {
+        transform: rotate(45deg);
+        top: 0;
+    }
+    
+    .menu-toggle.active .hamburger::after {
+        transform: rotate(-45deg);
+        top: 0;
+    }
 }
 
 /* Archive Navigation */
@@ -303,6 +395,7 @@ body.dark-mode .news-content {
 
 .news-actions {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
     margin-top: 1.5rem;
 }
@@ -315,6 +408,7 @@ body.dark-mode .news-content {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 .btn-primary {
@@ -367,7 +461,7 @@ section h2 {
 
 .intro-section h1 {
     font-weight: 700;
-    font-size: 3rem;
+    font-size: 1.8rem;
     background: linear-gradient(135deg, var(--primary-teal-dark), var(--primary-teal), var(--primary-teal-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -376,33 +470,130 @@ section h2 {
     line-height: 1.1;
     text-align: center;
     letter-spacing: -0.02em;
-    text-shadow: 0 2px 4px rgba(15, 76, 92, 0.1);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-    .intro-section h1 {
-        font-size: 2.3rem;
-    }
-    
+/* --- Very Small Mobile (< 601px) --- */
+@media (max-width: 600px) {
+    /* Force features list to column when space is too tight */
     .features-list {
-        /* Set to column stack for mobile view */
-        flex-direction: column; 
-        align-items: center;
-        /* CRUCIAL: Set gap to 0 so it doesn't add any vertical space */
-        gap: 0; 
-        /* Add some vertical space to the whole list container */
-        margin: 1rem 0; 
+        flex-direction: column;
+        gap: 0;
+        margin: 0.75rem 0;
     }
     
     .feature-item {
-        font-size: 0.875rem; /* Slightly larger than your 0.75rem for readability */
-        gap: 0.5rem; /* Small space between the checkmark and text */
-        
-        /* The vertical spacing must be applied here. */
-        /* Use top and bottom margin (0.3rem) to space the stacked items. */
-        margin: 0.3rem 0; 
+        margin: 0.25rem 0;
     }
+}
+
+/* --- Mobile/Small Tablet (>= 481px) --- */
+/* This is for slightly larger phones/portrait tablets, fixing the footer/cards back to flexible columns where possible. */
+@media (min-width: 481px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    .site-title {
+        font-size: 1.35rem;
+    }
+    
+    .intro-section h1 {
+        font-size: 2.3rem;
+    }
+
+    /* Let the card containers go back to a more flexible 1-2 column layout */
+    .analysis-summary,
+    .cards-grid,
+    .news-grid {
+        /* This minmax allows two columns if they both fit, otherwise, it reverts to 1fr. */
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    .footer-content {
+        /* Let the footer columns breathe a little */
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Undo 100% width on buttons if they can fit side-by-side */
+    .news-actions {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: auto;
+    }
+}
+
+/* --- Tablet/Small Desktop (>= 769px) --- */
+@media (min-width: 769px) {
+    /* Header/Nav: Revert to horizontal layout and hide the toggle */
+    .menu-toggle {
+        display: none;
+    }
+
+    .nav-menu {
+        display: flex !important; /* Force display flex for non-mobile menu */
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    header .container {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+    }
+    
+    .site-title {
+        font-size: 1.5rem;
+        flex: 0; /* Let it shrink based on content, not take up all space */
+    }
+
+    .container {
+        padding: 0 1.5rem;
+    }
+    
+    .intro-section h1 {
+        font-size: 3rem;
+    }
+
+    /* Features list switch to horizontal */
+    .features-list {
+        flex-direction: row; /* Switch to horizontal layout */
+        gap: 2rem; /* Horizontal spacing */
+        margin: 2rem 0;
+        flex-wrap: wrap; /* Allow wrapping if items are too wide */
+    }
+    
+    /* Card/Grid: Back to original large desktop layout with a wider minimum */
+    .cards-grid,
+    .analysis-summary {
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* News Grid, allowing 2-3 columns */
+    .news-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    /* Footer: Wider columns */
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+}
+
+/* --- Large Desktop (>= 1025px) --- */
+@media (min-width: 1025px) {
+    /* General content can be at max-width 1200px (already in base .container) */
+    /* No additional styling needed here unless specifically targeting ultra-wide screens */
 }
 
 .value-proposition {
@@ -417,21 +608,24 @@ section h2 {
     color: var(--neutral-medium);
 }
 
-/* Simple Feature List - Applies to screens > 768px */
+/* --- Modern Feature List Implementation (Mobile Default) --- */
 .features-list {
+    /* Use flexbox for the container */
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Center items horizontally */
+    align-items: center; /* Center items vertically */
     
-    /* Use a gap for the space between horizontal items (e.g., 2rem) */
-    gap: 2rem; 
+    /* Default: Stack items vertically for small screens */
+    flex-direction: column; 
+    gap: 0.75rem; /* Gap between vertical items */
+    margin: 1.5rem 0; /* Vertical margin around the list */
     
-    margin: 2rem 0;
-    flex-wrap: wrap;
-    /* Since the default flex-direction is row, this gap is horizontal */
+    /* Prevents unwanted wrapping in the column layout */
+    flex-wrap: nowrap; 
+    padding: 0;
+    list-style: none; /* Make sure it's a clean list */
 }
 
-/* Feature Item - Ensure no default margin that would add vertical space */
 .feature-item {
     display: flex;
     align-items: center;
@@ -439,8 +633,8 @@ section h2 {
     color: var(--text-primary);
     font-weight: 500;
     font-size: 1rem;
-    /* Explicitly set margin to 0 for wide screens */
-    margin: 0; 
+    margin: 0; /* Remove any previous margins that caused issues */
+    text-align: center; /* Center the text inside the item */
 }
 
 .section-header {
@@ -530,7 +724,7 @@ section h2 {
 /* Footer enhancements */
 .footer-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: 1fr;
     gap: 2rem;
     margin-bottom: 2rem;
     padding: 1rem 0;
@@ -611,7 +805,7 @@ section h2 {
 /* Analysis Summary */
 .analysis-summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 1.5rem;
 }
@@ -851,7 +1045,7 @@ section h2 {
 /* News Grid */
 .news-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
 }
 
@@ -871,9 +1065,11 @@ section h2 {
     background: #ffffff;
 }
 
-/* Cards Grid for Opportunities */
+/* Cards Grid - Base layout for opportunity cards */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 1.5rem;
+    padding: 0;
+    box-sizing: border-box;
 }
+

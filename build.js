@@ -522,8 +522,11 @@ ${newsText}
 <body>
     <header>
         <div class="container">
-            <a href="/" class="site-title">trendfollowing.ai</a>
-            <nav class="nav-menu">
+            <a href="/" class="site-title">Trendfollowing.AI</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
                 <a href="/" class="nav-link active">CCTV Trend</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->
@@ -535,7 +538,7 @@ ${newsText}
         <!-- Introduction Section -->
     <section class="intro-section">
       <div class="intro-content">
-        <h1>新闻联播 AI 趋势追踪系统</h1>
+        <h1>新闻联播 AI 趋势追踪</h1>
         <div class="features-list">
             <span class="feature-item">✓ 新闻联播信号解读</span>
             <span class="feature-item">✓ 主题投资趋势挖掘</span>
@@ -567,7 +570,7 @@ ${newsText}
           </div>
           <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
           <div class="data-source">
-            <span class="source-info">分析基于 <a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html" class="news-source-link">${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY年MM月DD日')} 新闻联播 </a> ${dailySummary.total_news || 0} 条新闻内容</span>
+            <span class="source-info">分析基于 <a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html" class="news-source-link">${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY年MM月DD日')} 新闻联播 </a></span>
           </div>
         </div>
             </div>
@@ -579,44 +582,44 @@ ${newsText}
             <div class="section-header">
                 <h2>AI 智选：捕捉主题投资趋势</h2>
             </div>
-            <div class="cards-grid">
-                ${dailySummary.opportunity_analysis.map((opportunity, index) => `
-                    <div class="opportunity-card">
-                        <div class="opportunity-header">
-                            <h4>${opportunity.theme}</h4>
-                        </div>
-                        
-                ${opportunity.core_stocks?.length > 0 ? `
-                <div class="investment-section">
-                  <h5>重点关注股票</h5>
-                  <div class="stocks-list">
-                    ${opportunity.core_stocks.map(stock => `<button class="stock-tag" onclick="copyToClipboard('${stock}', this)">${stock}</button>`).join('')}
-                  </div>
-                </div>
-                ` : ''}
-
-                ${opportunity.sector_etfs?.length > 0 ? `
-                <div class="etf-section">
-                  <h5>行业ETF参考</h5>
-                  <div class="etfs-list">
-                    ${opportunity.sector_etfs.map(etf => `<button class="etf-tag" onclick="copyToClipboard('${etf}', this)">${etf}</button>`).join('')}
-                  </div>
-                </div>
-                ` : ''}
-
-                <div class="action-section">
-                  <h5>操作建议</h5>
-                  <p class="actionable-advice">${opportunity.actionable_advice}</p>
-                </div>
-
-                <div class="news-interpretation">
-                  <h5>机会解读</h5>
-                  <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">新闻来源→</a>` : ''}</p>
-                </div>
-                    </div>
-                `).join('')}
-            </div>
         </section>
+        <div class="cards-grid">
+            ${dailySummary.opportunity_analysis.map((opportunity, index) => `
+                <div class="opportunity-card">
+                    <div class="opportunity-header">
+                        <h4>${opportunity.theme}</h4>
+                    </div>
+                    
+            ${opportunity.core_stocks?.length > 0 ? `
+            <div class="investment-section">
+              <h5>重点关注股票</h5>
+              <div class="stocks-list">
+                ${opportunity.core_stocks.map(stock => `<button class="stock-tag" onclick="copyToClipboard('${stock}', this)">${stock}</button>`).join('')}
+              </div>
+            </div>
+            ` : ''}
+
+            ${opportunity.sector_etfs?.length > 0 ? `
+            <div class="etf-section">
+              <h5>行业ETF参考</h5>
+              <div class="etfs-list">
+                ${opportunity.sector_etfs.map(etf => `<button class="etf-tag" onclick="copyToClipboard('${etf}', this)">${etf}</button>`).join('')}
+              </div>
+            </div>
+            ` : ''}
+
+            <div class="action-section">
+              <h5>操作建议</h5>
+              <p class="actionable-advice">${opportunity.actionable_advice}</p>
+            </div>
+
+            <div class="news-interpretation">
+              <h5>机会解读</h5>
+              <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">新闻来源→</a>` : ''}</p>
+            </div>
+                </div>
+            `).join('')}
+        </div>
         ` : `
         <section class="opportunities-section">
             <div class="section-header">
@@ -787,8 +790,11 @@ ${newsText}
 <body>
     <header>
         <div class="container">
-            <a href="/" class="site-title">trendfollowing.ai</a>
-            <nav class="nav-menu">
+            <a href="/" class="site-title">AI趋势跟踪系统</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
                 <a href="/" class="nav-link active">新闻联播</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->
@@ -848,8 +854,11 @@ ${newsText}
 <body>
     <header>
         <div class="container">
-            <a href="/" class="site-title">trendfollowing.ai</a>
-            <nav class="nav-menu">
+            <a href="/" class="site-title">AI趋势跟踪系统</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
                 <a href="/" class="nav-link active">CCTV Trend</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->

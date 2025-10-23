@@ -496,3 +496,14 @@ mark {
 const style = document.createElement('style');
 style.textContent = searchResultCSS;
 document.head.appendChild(style);
+
+// Global functions
+window.toggleMenu = function() {
+    const navMenu = document.getElementById('navMenu');
+    const menuToggle = document.querySelector('.menu-toggle');
+    
+    if (navMenu && menuToggle) {
+        navMenu.classList.toggle('active');
+        menuToggle.classList.toggle('active');
+    }
+};
