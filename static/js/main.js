@@ -285,14 +285,16 @@ window.searchNews = function() {
 };
 
 window.copyQuote = function() {
-    const quoteElement = document.querySelector('.quote-text');
+    const quoteElement = document.querySelector('.daily-quote-card p');
     if (!quoteElement) {
         console.warn('Quote element not found');
         return;
     }
 
     const quoteText = quoteElement.textContent.trim();
-    const shareText = `${quoteText} @trendfollowing.ai`;
+    // Remove the Chinese quotes for sharing
+    const cleanQuoteText = quoteText.replace(/^「|」$/g, '');
+    const shareText = `${cleanQuoteText} @trendfollowing.ai`;
 
     // Copy to clipboard
     navigator.clipboard.writeText(shareText).then(() => {
@@ -301,7 +303,7 @@ window.copyQuote = function() {
         if (button) {
             const originalText = button.textContent;
             button.textContent = '已复制!';
-            button.style.background = 'var(--success)';
+            button.style.background = 'var(--primary-light)';
             setTimeout(() => {
                 button.textContent = originalText;
                 button.style.background = '';
@@ -320,7 +322,7 @@ window.copyQuote = function() {
             if (button) {
                 const originalText = button.textContent;
                 button.textContent = '已复制!';
-                button.style.background = 'var(--success)';
+                button.style.background = 'var(--primary-light)';
                 setTimeout(() => {
                     button.textContent = originalText;
                     button.style.background = '';
@@ -349,6 +351,46 @@ window.shareNews = function(title, url) {
             prompt('复制此链接:', url);
         });
     }
+};
+
+window.copyToClipboard = function(text, element) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show feedback on the clicked element
+        if (element) {
+            const originalText = element.textContent;
+            element.textContent = '已复制!';
+            element.style.background = 'var(--primary-light)';
+            setTimeout(() => {
+                element.textContent = originalText;
+                element.style.background = '';
+            }, 1500);
+        }
+        console.log('Copied to clipboard:', text);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            if (element) {
+                const originalText = element.textContent;
+                element.textContent = '已复制!';
+                element.style.background = 'var(--primary-light)';
+                setTimeout(() => {
+                    element.textContent = originalText;
+                    element.style.background = '';
+                }, 1500);
+            }
+            console.log('Fallback copy successful');
+        } catch (fallbackErr) {
+            console.error('Fallback copy failed:', fallbackErr);
+            alert('复制失败，请手动复制: ' + text);
+        }
+        document.body.removeChild(textArea);
+    });
 };
 
 // Initialize when DOM is loaded

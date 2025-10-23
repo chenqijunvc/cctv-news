@@ -15,7 +15,8 @@ class NewsArchiveBuilder {
     this.outputDir = './dist';
     this.analysisDir = './analysis';
     this.templateDir = './templates';
-    this.readAnalysisMode = options.readAnalysis || false;
+    this.forceApiMode = options.forceApi || false;
+    this.daysLimit = options.daysLimit || null; // Global variable to control days limit (null = no limit, number = limit to X days)
     this.genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'your-api-key-here' });
   }
 
@@ -195,10 +196,10 @@ class NewsArchiveBuilder {
     const todayFile = path.join(this.assetsDir, '2025', `${today}.json`);
     const analysisFile = path.join(this.analysisDir, `${today}.json`);
     
-    // If in read mode, try to read existing analysis
-    if (this.readAnalysisMode) {
+    // By default, check if today's analysis exists and use it to reduce API calls
+    if (!this.forceApiMode) {
       if (await fs.pathExists(analysisFile)) {
-        console.log(`📖 Reading existing analysis for ${today}`);
+        console.log(`📖 Using existing analysis for ${today}`);
         try {
           const savedAnalysis = await fs.readJson(analysisFile);
           return {
@@ -211,6 +212,8 @@ class NewsArchiveBuilder {
       } else {
         console.log(`⚠️ No existing analysis found for ${today}, generating new`);
       }
+    } else {
+      console.log(`🔄 Force API mode enabled, generating fresh analysis for ${today}`);
     }
     
     // Generate new analysis
@@ -223,9 +226,7 @@ class NewsArchiveBuilder {
         const emptyResult = {
           investment_thesis: '今日暂无新闻数据',
           total_news: 0,
-          sector_opportunities: [],
-          policy_catalysts: [],
-          risk_factors: [],
+          opportunity_analysis: [],
           actionable_insights: [],
           market_outlook: '',
           shareable_insight: '',
@@ -259,7 +260,7 @@ class NewsArchiveBuilder {
 
       // Prepare news data for Gemini - include full content for all items
       const newsText = newsItems.map((news, index) => {
-        const baseInfo = `${index + 1}. ${this.cleanTitle(news.video_title)}\n   ${news.brief || '暂无简介'}\n   分类: ${news.news_hl_tag || '未分类'}`;
+        const baseInfo = `${index + 1}. ${this.cleanTitle(news.video_title)}\n   ID: ${news.video_id}\n   ${news.brief || '暂无简介'}\n   分类: ${news.news_hl_tag || '未分类'}`;
         
         if (news.video_detail?.content) {
           return `${baseInfo}\n   全文内容: ${news.video_detail.content}`;
@@ -273,7 +274,7 @@ class NewsArchiveBuilder {
 ${newsText}
 --- 结束 ---
 
-**核心任务：识别政策驱动的结构性趋势投资机会，评估投资时间窗口，提供具体配置建议**
+**核心任务：快速总结每日新闻，识别最相关投资机会，进行深度分析，提供投资角度和可执行建议**
 
 请严格按照以下JSON格式返回分析结果：
 
@@ -282,27 +283,14 @@ ${newsText}
     "investment_quote": "根据今日内容，一句精炼的极具传播价值的投资金句（30字以内，要有洞察力和转发价值）",
     "core_logic": "用一段话（100-150字）概括今日新闻反应的最核心的投资逻辑，要有冲击力和记忆点"
   },
-  "policy_catalysts": [
+  "opportunity_analysis": [
     {
-      "theme": "政策主题（如：数字经济基建、农业现代化等）",
+      "theme": "政策主题（按新闻相关性由高到低排序，最好能生成六个以上，但不要编造与新闻无关的主题）",
       "impact": "政策对市场的影响描述，如有资金规模请注明",
-      "investment_angle": "一句话叙述具体的投资角度"
-    }
-  ],
-  "sector_opportunities": [
-    {
-      "sector": "具体行业细分（避免宽泛表述），可列出多个",
-      "conviction": "高确定性/中确定性/初步判断", （严格选择其一）
-      "timeframe": "立即布局/近期关注/长期跟踪",（严格选择其一）
-      "actionable_advice": "对可能受益的细分领域或股票类型给出明确的可执行投资建议"
-    }
-  ],
-  "risk_factors": [
-    {
-      "factor": "具体风险因素描述",
-      "impact": "风险对市场的影响",
-      "mitigation": "对冲或规避的投资建议"
-    }
+      "actionable_advice": "一句话叙述具体的投资角度，对可能受益的细分领域或股票类型给出明确的可执行投资建议",
+      "core_stocks": ["string"], // 4-6只核心股票[名称(代码)]，选相关性最高，流动性好的龙头
+      "sector_etfs": ["string"], // 1-2只相关性最高的行业ETF[名称(代码)]
+      "related_news_ids": ["string"] // 用于生成这个政策主题的新闻video_id，list the one most relevant ID
   ]
 }
 
@@ -311,15 +299,14 @@ ${newsText}
 1. **政策驱动优先** - 重点分析有明确政策背书的机会
 2. **数据支撑** - 每个判断尽量引用新闻中的具体数据（金额、百分比、时间等）
 3. **产业链思维** - 从上游到下游分析受益环节
-4. **时间窗口明确** - 区分不同时间维度的机会
-5. **风险收益匹配** - 每个机会都要对应风险评估
+4. **可操作性** - 提供具体股票和ETF建议，便于立即执行
 
 **内容质量要求：**
 
 ✅ **必须做到**：
-- 每个建议都要具体到细分领域或公司类型
-- 所有内容必须基于当日日新闻联播，尽量提供新闻中具体数据和规模的支持
-- 区分政策预期与现实落地的时间差
+- 每个机会都要提供至少3只具体股票和1只ETF，但不要胡乱编造
+- 所有内容必须基于当日新闻联播，尽量提供新闻中具体数据和规模的支持
+- 股票选择流动性好的行业龙头，ETF选择跟踪相关行业的宽基指数
 - 用投资者熟悉的专业术语但避免jargon
 - 同类项内容避免重复
 
@@ -332,7 +319,6 @@ ${newsText}
 **输出规范：**
 - 全部使用纯中文，专业但易懂
 - 投资建议要可立即执行
-- 风险提示要有具体应对方案
 - 保持客观中立，不夸大收益
 
 现在，请基于今日新闻联播内容，提供专业的趋势投资分析：`;
@@ -362,9 +348,7 @@ ${newsText}
             investment_quote: '投资需谨慎，关注政策导向',
             core_logic: `今日共${newsItems.length}条新闻，主要涉及经济、科技、社会等多个领域。`
           },
-          policy_catalysts: [],
-          sector_opportunities: [],
-          risk_factors: []
+          opportunity_analysis: []
         };
       }
       
@@ -373,18 +357,14 @@ ${newsText}
         investment_quote: '投资需谨慎，关注政策导向',
         core_logic: `今日共${newsItems.length}条新闻，主要涉及经济、科技、社会等多个领域。`
       };
-      analysis.policy_catalysts = analysis.policy_catalysts || [];
-      analysis.sector_opportunities = analysis.sector_opportunities || [];
-      analysis.risk_factors = analysis.risk_factors || [];
+      analysis.opportunity_analysis = analysis.opportunity_analysis || [];
       
       console.log('Parsed analysis:', analysis);
 
       const result = {
         summary: analysis.summary,
         total_news: newsItems.length,
-        policy_catalysts: analysis.policy_catalysts,
-        sector_opportunities: analysis.sector_opportunities,
-        risk_factors: analysis.risk_factors,
+        opportunity_analysis: analysis.opportunity_analysis,
         has_data: true
       };
 
@@ -408,9 +388,7 @@ ${newsText}
           core_logic: '今日新闻数据暂未更新或AI分析服务不可用'
         },
         total_news: '--',
-        policy_catalysts: [],
-        sector_opportunities: [],
-        risk_factors: [],
+        opportunity_analysis: [],
         has_data: false
       };
     }
@@ -448,9 +426,7 @@ ${newsText}
         core_logic: summaryText
       },
       total_news: newsItems.length,
-      policy_catalysts: [],
-      sector_opportunities: [],
-      risk_factors: [],
+      opportunity_analysis: [],
       has_data: true
     };
   }
@@ -478,7 +454,7 @@ ${newsText}
         <div class="container">
             <a href="/" class="site-title">trendfollowing.ai</a>
             <nav class="nav-menu">
-                <a href="#" class="nav-link active">CCTV Trend</a>
+                <a href="/" class="nav-link active">CCTV Trend</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->
             </nav>
@@ -486,134 +462,91 @@ ${newsText}
     </header>
 
     <main class="container">
-        <!-- Investment Analysis Dashboard -->
-        <section class="investment-dashboard">
-            <div class="dashboard-header">
-                <h2>新闻联播趋势洞察</h2>
-                <div class="dashboard-meta">
-                    <span class="update-time">更新时间: ${dailySummary.has_data ? moment().format('MM-DD HH:mm') : '暂无数据'}</span>
-                    <span class="news-count">${dailySummary.total_news || 0} 条新闻</span>
-                </div>
-            </div>
+        <!-- Introduction Section -->
+        <section class="intro-section">
+            <h1>新闻联播趋势分析</h1>
+            <p class="intro-text">
+                通过AI深度分析每日新闻联播内容，识别政策驱动的投资机会，为投资者提供数据支撑的趋势洞察。
+            </p>
+        </section>
 
-            <!-- Core Insights Hero Section -->
-            <div class="core-insights">
-                <div class="insights-content">
-                    <div class="investment-quote">
-                        <div class="quote-icon"></div>
-                        <div class="quote-text">
-                            ${dailySummary.summary?.investment_quote || '投资需谨慎，关注政策导向'}
-                        </div>
-                        <button class="btn-copy" onclick="copyQuote()" title="复制金句">
+        <!-- Trend Insights Section -->
+        <section>
+            <h2>趋势洞察</h2>
+            <div class="analysis-summary">
+                <div class="daily-quote-card">
+                    <h3>今日观点</h3>
+                    <p> ${dailySummary.summary?.investment_quote || '投资需谨慎，关注政策导向趋势'} </p>
+                    <div class="meta-info">
+                        <button class="btn-copy read-more" onclick="copyQuote()" title="复制金句">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <path d="m8.5 14 7-7"></path>
+                                <path d="m8.5 10 7 7"></path>
+                            </svg>
                             分享
                         </button>
                     </div>
-                    <div class="core-logic">
-                        <h3>核心逻辑</h3>
-                        <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
-                    </div>
                 </div>
-            </div>
-
-            <!-- Opportunity Heatmap -->
-            <div class="opportunity-heatmap">
-                <div class="heatmap-grid">
-                    <!-- Policy Catalysts -->
-                    ${dailySummary.policy_catalysts?.length > 0 ? `
-                    <div class="heatmap-section">
-                        <h3 class="section-title">
-                            宏观视角
-                        </h3>
-                        <div class="cards-grid">
-                            ${dailySummary.policy_catalysts.map(policy => `
-                                <div class="policy-card heatmap-card">
-                                    <h4>${policy.theme}</h4>
-                                    <p class="card-preview">${policy.impact}</p>
-                                    <div class="card-meta">
-                                        <span class="meta-tag">${policy.investment_angle || '政策影响'}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+                <div class="core-logic-card">
+                    <h3>核心逻辑</h3>
+                    <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
+                    <div class="meta-info">
+                        <span class="update-time">更新时间: ${dailySummary.has_data ? moment().format('MM-DD HH:mm') : '暂无数据'}</span>
+                        <a href="/archive/${moment().format('YYYY')}/${moment().format('YYYYMMDD')}.html" class="news-count read-more">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                            ${dailySummary.total_news || 0} 条新闻
+                        </a>
                     </div>
-                    ` : ''}
-
-                    <!-- Investment Opportunities -->
-                    ${dailySummary.sector_opportunities?.length > 0 ? `
-                    <div class="heatmap-section">
-                        <h3 class="section-title">
-                            投资机会
-                        </h3>
-                        <div class="cards-grid">
-                            ${dailySummary.sector_opportunities.map((opportunity, index) => {
-                                // Calculate combined score for 3-step color theme
-                                let convictionScore = 0;
-                                if (opportunity.conviction?.includes('高确定性')) convictionScore = 3;
-                                else if (opportunity.conviction?.includes('中确定性')) convictionScore = 2;
-                                else convictionScore = 1;
-                                
-                                let timeframeScore = 0;
-                                if (opportunity.timeframe?.includes('立即布局')) timeframeScore = 3;
-                                else if (opportunity.timeframe?.includes('近期关注')) timeframeScore = 2;
-                                else timeframeScore = 1;
-                                
-                                const combinedScore = Math.min(convictionScore + timeframeScore, 6); // Max 6
-                                let convictionClass = 'conviction-low';
-                                let timeframeClass = 'timeframe-low';
-                                if (combinedScore >= 5) {
-                                    convictionClass = 'conviction-high';
-                                    timeframeClass = 'timeframe-high';
-                                } else if (combinedScore >= 3) {
-                                    convictionClass = 'conviction-medium';
-                                    timeframeClass = 'timeframe-medium';
-                                }
-                                
-                                return `
-                                <div class="opportunity-card heatmap-card">
-                                    <h4>${opportunity.sector}</h4>
-                                    <p class="card-preview">${opportunity.actionable_advice}</p>
-                                    <div class="card-meta">
-                                        <span class="meta-tag ${convictionClass}">${opportunity.conviction || '待评估'}</span>
-                                        <span class="meta-tag ${timeframeClass}">${opportunity.timeframe || '短期'}</span>
-                                    </div>
-                                </div>
-                            `}).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    <!-- Risk Assessment -->
-                    ${dailySummary.risk_factors?.length > 0 ? `
-                    <div class="heatmap-section">
-                        <h3 class="section-title">
-                            风险因子
-                        </h3>
-                        <div class="cards-grid">
-                            ${dailySummary.risk_factors.map(risk => `
-                                <div class="risk-card heatmap-card">
-                                    <h4>${risk.factor}</h4>
-                                    <p class="card-preview">${risk.impact}</p>
-                                    <div class="card-meta">
-                                        <span class="meta-tag risk-level">${risk.mitigation}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
                 </div>
             </div>
         </section>
 
-        <script>
-            // Pass analysis data to JavaScript
-            window.analysisData = ${JSON.stringify({
-                policy_catalysts: dailySummary.policy_catalysts || [],
-                sector_opportunities: dailySummary.sector_opportunities || [],
-                risk_factors: dailySummary.risk_factors || [],
-                summary: dailySummary.summary || {}
-            }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')};
-        </script>
+        <!-- Investment Opportunities Section -->
+        ${dailySummary.opportunity_analysis?.length > 0 ? `
+        <section>
+            <h2>投资机会</h2>
+            <div class="cards-grid">
+                ${dailySummary.opportunity_analysis.map((opportunity, index) => `
+                    <div class="opportunity-card">
+                        ${opportunity.related_news_ids?.length > 0 ? 
+                            `<h4><a href="/archive/${moment().format('YYYY')}/${moment().format('YYYYMMDD')}.html#${opportunity.related_news_ids[0]}" style="color: inherit; text-decoration: none;">${opportunity.theme}</a></h4>` :
+                            `<h4>${opportunity.theme}</h4>`
+                        }
+                        ${opportunity.core_stocks?.length > 0 ? `
+                        <div class="stocks-section">
+                            <h5>核心标的：</h5>
+                            <div class="stocks-list">
+                                ${opportunity.core_stocks.map(stock => `<button class="stock-tag" onclick="copyToClipboard('${stock}', this)">${stock}</button>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        ${opportunity.sector_etfs?.length > 0 ? `
+                        <div class="etfs-section">
+                            <h5>行业ETF：</h5>
+                            <div class="etfs-list">
+                                ${opportunity.sector_etfs.map(etf => `<button class="etf-tag" onclick="copyToClipboard('${etf}', this)">${etf}</button>`).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        <div class="actionable-advice-section">
+                            <span class="actionable-advice">${opportunity.actionable_advice}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </section>
+        ` : ''}
+
+        <!-- Latest News Section - Hidden for now
         <section>
             <h2>最新新闻</h2>
             <div class="news-grid">
@@ -631,7 +564,9 @@ ${newsText}
                 `).join('')}
             </div>
         </section>
+        -->
 
+        <!-- Search News Section - Hidden for now
         <section class="search-section">
             <h2>搜索新闻</h2>
             <div class="search-container">
@@ -663,6 +598,7 @@ ${newsText}
             </div>
             <div id="searchResults"></div>
         </section>
+        -->
 
         <!-- <section>
             <h2>按年份浏览</h2>
@@ -688,21 +624,54 @@ ${newsText}
   }
 
   async generateArchivePages(index) {
-    console.log('📄 Generating archive pages...');
+    const limitText = this.daysLimit ? `past ${this.daysLimit} days` : 'all available data';
+    console.log(`📄 Generating archive pages (${limitText})...`);
     
-    // Generate year index pages
+    // Calculate cutoff date if daysLimit is set
+    const cutoffDate = this.daysLimit ? moment().subtract(this.daysLimit, 'days').format('YYYYMMDD') : null;
+    
+    // Generate year index pages (only for years that have recent data if limited)
     for (const [year, yearData] of Object.entries(index.years)) {
-      await fs.ensureDir(path.join(this.outputDir, 'archive', year));
-      
-      // Year index page
-      const yearHtml = this.generateYearPage(year, yearData);
-      await fs.writeFile(path.join(this.outputDir, 'archive', year, 'index.html'), yearHtml);
-      
-      // Individual day pages
+      // Check if this year has any days within the limit
+      let hasData = false;
       for (const [month, days] of Object.entries(yearData.months)) {
         for (const day of days) {
-          const dayHtml = await this.generateDayPage(day);
-          await fs.writeFile(path.join(this.outputDir, 'archive', year, `${day.date}.html`), dayHtml);
+          if (!cutoffDate || day.date >= cutoffDate) {
+            hasData = true;
+            break;
+          }
+        }
+        if (hasData) break;
+      }
+      
+      if (!hasData) continue;
+      
+      await fs.ensureDir(path.join(this.outputDir, 'archive', year));
+      
+      // Year index page (filtered if daysLimit is set)
+      const filteredYearData = {
+        months: {},
+        totalNews: 0
+      };
+      
+      for (const [month, days] of Object.entries(yearData.months)) {
+        const filteredDays = cutoffDate ? days.filter(day => day.date >= cutoffDate) : days;
+        if (filteredDays.length > 0) {
+          filteredYearData.months[month] = filteredDays;
+          filteredYearData.totalNews += filteredDays.reduce((sum, day) => sum + day.newsCount, 0);
+        }
+      }
+      
+      const yearHtml = this.generateYearPage(year, filteredYearData);
+      await fs.writeFile(path.join(this.outputDir, 'archive', year, 'index.html'), yearHtml);
+      
+      // Individual day pages (filtered if daysLimit is set)
+      for (const [month, days] of Object.entries(yearData.months)) {
+        for (const day of days) {
+          if (!cutoffDate || day.date >= cutoffDate) {
+            const dayHtml = await this.generateDayPage(day);
+            await fs.writeFile(path.join(this.outputDir, 'archive', year, `${day.date}.html`), dayHtml);
+          }
         }
       }
     }
@@ -726,7 +695,7 @@ ${newsText}
         <div class="container">
             <a href="/" class="site-title">trendfollowing.ai</a>
             <nav class="nav-menu">
-                <a href="#" class="nav-link active">CCTV Trend</a>
+                <a href="/" class="nav-link active">CCTV Trend</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->
             </nav>
@@ -787,7 +756,7 @@ ${newsText}
         <div class="container">
             <a href="/" class="site-title">trendfollowing.ai</a>
             <nav class="nav-menu">
-                <a href="#" class="nav-link active">CCTV Trend</a>
+                <a href="/" class="nav-link active">CCTV Trend</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->
             </nav>
@@ -802,8 +771,8 @@ ${newsText}
 
         <div class="news-list">
             ${data.videoList.map(video => `
-                <article id="${video.video_id}" class="news-item">
-                    <h2>${this.cleanTitle(video.video_title)}</h2>
+                <article class="news-item">
+                    <h2 id="${video.video_id}">${this.cleanTitle(video.video_title)}</h2>
                     <div class="news-meta" style="flex-direction: row; flex-wrap: wrap; gap: 1rem;">
                         <span>⏰ ${video.video_length}</span>
                         <span>🏷️ ${video.news_hl_tag || 'General'}</span>
@@ -818,6 +787,7 @@ ${newsText}
                     ` : ''}
                     <div class="news-actions" style="margin-top: 2rem;">
                         <a href="${video.video_url}" target="_blank" class="btn-primary">观看视频</a>
+                        <a href="/" class="btn-secondary">返回主页</a>
                         <button onclick="shareNews('${video.video_title}', '${video.video_url}')" class="btn-secondary">分享</button>
                     </div>
                 </article>
@@ -850,34 +820,36 @@ ${newsText}
       news: index.recentNews.slice(0, 50)
     });
     
-    // Search index for client-side search (last 2 years only to reduce file size)
+    // Search index for client-side search
+    const limitText = this.daysLimit ? `past ${this.daysLimit} days` : 'all available data';
+    console.log(`📊 Generating search index (${limitText})...`);
+    
     const searchIndex = [];
-    const currentYear = moment().year();
-    const minYear = currentYear - 2; // Only include last 2 years
+    const cutoffDate = this.daysLimit ? moment().subtract(this.daysLimit, 'days').format('YYYYMMDD') : null;
     
     for (const [year, yearData] of Object.entries(index.years)) {
-      if (parseInt(year) < minYear) continue; // Skip older years
-      
       for (const [month, days] of Object.entries(yearData.months)) {
         for (const day of days) {
-          const filePath = path.join(this.assetsDir, day.file);
-          try {
-            const data = await fs.readJson(filePath);
-            data.videoList.forEach(video => {
-              searchIndex.push({
-                id: video.video_id,
-                title: this.cleanTitle(video.video_title),
-                brief: (video.brief || '').substring(0, 200), // Limit brief length
-                category: video.news_hl_tag || '',
-                date: day.date,
-                year: year,
-                month: day.date.substring(4, 6),
-                day: day.date.substring(6, 8),
-                url: `/archive/${year}/${day.date}.html#${video.video_id}`
+          if (!cutoffDate || day.date >= cutoffDate) {
+            const filePath = path.join(this.assetsDir, day.file);
+            try {
+              const data = await fs.readJson(filePath);
+              data.videoList.forEach(video => {
+                searchIndex.push({
+                  id: video.video_id,
+                  title: this.cleanTitle(video.video_title),
+                  brief: (video.brief || '').substring(0, 200), // Limit brief length
+                  category: video.news_hl_tag || '',
+                  date: day.date,
+                  year: year,
+                  month: day.date.substring(4, 6),
+                  day: day.date.substring(6, 8),
+                  url: `/archive/${year}/${day.date}.html#${video.video_id}`
+                });
               });
-            });
-          } catch (error) {
-            console.warn(`⚠️  Error reading ${filePath} for search index`);
+            } catch (error) {
+              console.warn(`⚠️  Error reading ${filePath} for search index`);
+            }
           }
         }
       }
@@ -890,9 +862,19 @@ ${newsText}
 
 // Run the build
 if (require.main === module) {
-  const readAnalysis = process.argv.includes('--read-analysis');
-  const builder = new NewsArchiveBuilder({ readAnalysis });
-  console.log(`🏗️ Building in ${readAnalysis ? 'READ ANALYSIS' : 'GENERATE NEW'} mode`);
+  const forceApi = process.argv.includes('--force-api');
+  
+  // Parse days limit from command line (default to 7, use null for no limit)
+  let daysLimit = 7; // Default to 7 days
+  const daysArg = process.argv.find(arg => arg.startsWith('--days='));
+  if (daysArg) {
+    const daysValue = daysArg.split('=')[1];
+    daysLimit = daysValue === 'all' ? null : parseInt(daysValue);
+  }
+  
+  const builder = new NewsArchiveBuilder({ forceApi, daysLimit });
+  const limitText = daysLimit ? `${daysLimit} days` : 'all data';
+  console.log(`🏗️ Building in ${forceApi ? 'FORCE API' : 'SMART CACHE'} mode (limiting to ${limitText})`);
   builder.build().catch(console.error);
 }
 

@@ -8,9 +8,9 @@ on:
         required: true
         default: 'warning'
   # （东8区，所以需要 +8小时） 拉取最新数据
-  # 每周五 11 点更新
+  # 北京时间每天9:30pm更新
   schedule:
-  - cron: "0 15 * * 5"
+  - cron: "30 13 * * *"
 
 jobs:
   xwlb:
