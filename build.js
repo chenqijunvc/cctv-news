@@ -223,6 +223,68 @@ class NewsArchiveBuilder {
       const newsItems = data.videoList || [];
       
       if (newsItems.length === 0) {
+        console.log(`⚠️ Today's news is empty, checking for latest available analysis as fallback...`);
+        
+        // Find the latest date with both news data and analysis
+        let fallbackDate = null;
+        let checkDate = moment(today, 'YYYYMMDD').subtract(1, 'day');
+        
+        // Check up to 7 days back for available analysis
+        for (let i = 0; i < 7; i++) {
+          const dateStr = checkDate.format('YYYYMMDD');
+          const newsFile = path.join(this.assetsDir, checkDate.format('YYYY'), `${dateStr}.json`);
+          const analysisFile = path.join(this.analysisDir, `${dateStr}.json`);
+          
+          try {
+            // Check if news file exists and has content
+            if (await fs.pathExists(newsFile)) {
+              const newsData = await fs.readJson(newsFile);
+              const hasNews = newsData.videoList && newsData.videoList.length > 0;
+              
+              // Check if analysis exists
+              if (hasNews && await fs.pathExists(analysisFile)) {
+                fallbackDate = dateStr;
+                break; // Found the latest one
+              }
+            }
+          } catch (error) {
+            // Continue checking other dates
+          }
+          
+          checkDate.subtract(1, 'day');
+        }
+        
+        if (fallbackDate) {
+          const fallbackAnalysisFile = path.join(this.analysisDir, `${fallbackDate}.json`);
+          try {
+            const fallbackAnalysis = await fs.readJson(fallbackAnalysisFile);
+            console.log(`📅 Using latest available analysis (${fallbackDate}) as fallback for today`);
+            
+            // Update the news_date to today but keep fallback content
+            const fallbackResult = {
+              ...fallbackAnalysis,
+              news_date: today, // Update to today's date
+              fallback_from: fallbackDate, // Track that this is a fallback
+              has_data: false // Mark as no new data for today
+            };
+            
+            // Save today's empty analysis with fallback info
+            const timestamp = moment().format('YYYYMMDD_HHmmss');
+            const analysisWithMeta = {
+              ...fallbackResult,
+              generated_at: timestamp,
+              news_date: today
+            };
+            await fs.writeJson(analysisFile, analysisWithMeta);
+            console.log(`💾 Saved fallback analysis to ${analysisFile} (from ${fallbackDate})`);
+            
+            return fallbackResult;
+          } catch (error) {
+            console.warn(`⚠️ Failed to read fallback analysis from ${fallbackDate}, creating empty analysis:`, error.message);
+          }
+        }
+        
+        // No fallback analysis available, create empty analysis
         const emptyResult = {
           investment_thesis: '今日暂无新闻数据',
           total_news: 0,
@@ -495,6 +557,7 @@ ${newsText}
                     <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
                     <div class="meta-info">
                         <span class="update-time">更新时间: ${dailySummary.has_data ? moment().format('MM-DD HH:mm') : '暂无数据'}</span>
+                        ${dailySummary.fallback_from ? `<span class="fallback-notice" style="color: #f59e0b; font-size: 0.8rem;">(基于${moment(dailySummary.fallback_from, 'YYYYMMDD').format('MM-DD')}分析)</span>` : ''}
                         <a href="/archive/${moment().format('YYYY')}/${moment().format('YYYYMMDD')}.html" class="news-count read-more">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
