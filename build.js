@@ -192,109 +192,86 @@ class NewsArchiveBuilder {
 
   // Generate AI-powered daily investment analysis using Gemini
   async generateDailySummary() {
-    const today = moment().format('YYYYMMDD');
+    // Get Beijing time (UTC+8) to match repository timezone
+    const getBeijingTime = () => {
+      return moment().utcOffset('+08:00');
+    };
+    
+    const today = getBeijingTime().format('YYYYMMDD');
     const todayFile = path.join(this.assetsDir, '2025', `${today}.json`);
     const analysisFile = path.join(this.analysisDir, `${today}.json`);
     
-    // By default, check if today's analysis exists and use it to reduce API calls
-    if (!this.forceApiMode) {
-      if (await fs.pathExists(analysisFile)) {
-        console.log(`📖 Using existing analysis for ${today}`);
-        try {
-          const savedAnalysis = await fs.readJson(analysisFile);
-          return {
-            ...savedAnalysis,
-            has_data: true
-          };
-        } catch (error) {
-          console.warn(`⚠️ Failed to read saved analysis, generating new:`, error.message);
-        }
-      } else {
-        console.log(`⚠️ No existing analysis found for ${today}, generating new`);
-      }
-    } else {
-      console.log(`🔄 Force API mode enabled, generating fresh analysis for ${today}`);
-    }
-    
-    // Generate new analysis
+    // Step 1: Check if today's news JSON exists and is not empty FIRST
+    let newsItems = [];
+    let targetDate = today;
+    let fallbackDate = null;
     
     try {
       const data = await fs.readJson(todayFile);
-      const newsItems = data.videoList || [];
+      newsItems = data.videoList || [];
+      if (newsItems.length > 0) {
+        console.log(`🤖 Generating AI analysis for ${today} (${newsItems.length} news items)`);
+      }
+    } catch (error) {
+      console.log(`⚠️ Today's news file not found or unreadable: ${today}.json`);
+    }
+    
+    // Step 2: If today's news exists and is not empty, check if we need to regenerate analysis
+    if (newsItems.length > 0) {
+      if (!this.forceApiMode && await fs.pathExists(analysisFile)) {
+        try {
+          const savedAnalysis = await fs.readJson(analysisFile);
+          if (savedAnalysis.total_news > 0 && savedAnalysis.has_data !== false && savedAnalysis.news_date === today) {
+            console.log(`📖 Using existing analysis for ${today} (${savedAnalysis.total_news} news items)`);
+            return savedAnalysis;
+          }
+        } catch (error) {
+          console.warn(`⚠️ Failed to read cached analysis, will regenerate:`, error.message);
+        }
+      }
+      // Generate new analysis for today's news
+      console.log(`🤖 Generating fresh AI analysis for ${today} (${newsItems.length} news items)`);
+    } else {
+      // Step 3: Today's news is empty, find the last available date with non-empty news JSON
+      console.log(`⚠️ Today's news is empty, finding latest available news data...`);
+      
+      let checkDate = getBeijingTime().subtract(1, 'day');
+      
+      for (let i = 0; i < 7; i++) {
+        const dateStr = checkDate.format('YYYYMMDD');
+        const newsFile = path.join(this.assetsDir, checkDate.format('YYYY'), `${dateStr}.json`);
+        
+        try {
+          if (await fs.pathExists(newsFile)) {
+            const newsData = await fs.readJson(newsFile);
+            const hasNews = newsData.videoList && newsData.videoList.length > 0;
+            
+            if (hasNews) {
+              targetDate = dateStr;
+              newsItems = newsData.videoList;
+              console.log(`📅 Found latest news data from ${targetDate} (${newsItems.length} items)`);
+              break;
+            }
+          }
+        } catch (error) {
+          // Continue checking other dates
+        }
+        
+        checkDate.subtract(1, 'day');
+      }
       
       if (newsItems.length === 0) {
-        console.log(`⚠️ Today's news is empty, checking for latest available analysis as fallback...`);
-        
-        // Find the latest date with both news data and analysis
-        let fallbackDate = null;
-        let checkDate = moment(today, 'YYYYMMDD').subtract(1, 'day');
-        
-        // Check up to 7 days back for available analysis
-        for (let i = 0; i < 7; i++) {
-          const dateStr = checkDate.format('YYYYMMDD');
-          const newsFile = path.join(this.assetsDir, checkDate.format('YYYY'), `${dateStr}.json`);
-          const analysisFile = path.join(this.analysisDir, `${dateStr}.json`);
-          
-          try {
-            // Check if news file exists and has content
-            if (await fs.pathExists(newsFile)) {
-              const newsData = await fs.readJson(newsFile);
-              const hasNews = newsData.videoList && newsData.videoList.length > 0;
-              
-              // Check if analysis exists
-              if (hasNews && await fs.pathExists(analysisFile)) {
-                fallbackDate = dateStr;
-                break; // Found the latest one
-              }
-            }
-          } catch (error) {
-            // Continue checking other dates
-          }
-          
-          checkDate.subtract(1, 'day');
-        }
-        
-        if (fallbackDate) {
-          const fallbackAnalysisFile = path.join(this.analysisDir, `${fallbackDate}.json`);
-          try {
-            const fallbackAnalysis = await fs.readJson(fallbackAnalysisFile);
-            console.log(`📅 Using latest available analysis (${fallbackDate}) as fallback for today`);
-            
-            // Update the news_date to today but keep fallback content
-            const fallbackResult = {
-              ...fallbackAnalysis,
-              news_date: today, // Update to today's date
-              fallback_from: fallbackDate, // Track that this is a fallback
-              has_data: false // Mark as no new data for today
-            };
-            
-            // Save today's empty analysis with fallback info
-            const timestamp = moment().format('YYYYMMDD_HHmmss');
-            const analysisWithMeta = {
-              ...fallbackResult,
-              generated_at: timestamp,
-              news_date: today
-            };
-            await fs.writeJson(analysisFile, analysisWithMeta);
-            console.log(`💾 Saved fallback analysis to ${analysisFile} (from ${fallbackDate})`);
-            
-            return fallbackResult;
-          } catch (error) {
-            console.warn(`⚠️ Failed to read fallback analysis from ${fallbackDate}, creating empty analysis:`, error.message);
-          }
-        }
-        
-        // No fallback analysis available, create empty analysis
+        // No news data available at all, create empty analysis
         const emptyResult = {
-          investment_thesis: '今日暂无新闻数据',
+          summary: {
+            investment_quote: '今日暂无新闻数据',
+            core_logic: '今日暂无新闻数据，无法生成投资分析'
+          },
           total_news: 0,
           opportunity_analysis: [],
-          actionable_insights: [],
-          market_outlook: '',
-          shareable_insight: '',
           has_data: false
         };
-        const timestamp = moment().format('YYYYMMDD_HHmmss');
+        const timestamp = getBeijingTime().format('YYYYMMDD_HHmmss');
         const analysisWithMeta = {
           ...emptyResult,
           generated_at: timestamp,
@@ -304,19 +281,48 @@ class NewsArchiveBuilder {
         console.log(`💾 Saved empty analysis to ${analysisFile}`);
         return emptyResult;
       }
+    }
+    
+    // Step 3: For fallback dates, check if analysis JSON exists and is not empty
+    if (targetDate !== today) {
+      const targetAnalysisFile = path.join(this.analysisDir, `${targetDate}.json`);
+      if (!this.forceApiMode && await fs.pathExists(targetAnalysisFile)) {
+        try {
+          const targetAnalysis = await fs.readJson(targetAnalysisFile);
+          if (targetAnalysis.total_news > 0 && targetAnalysis.has_data !== false) {
+            console.log(`📖 Using existing analysis from ${targetDate} for today`);
+            // Return the target analysis but update metadata for today
+            const todayAnalysis = {
+              ...targetAnalysis,
+              news_date: today,
+              fallback_from: targetDate
+            };
+            return todayAnalysis;
+          }
+        } catch (error) {
+          console.warn(`⚠️ Failed to read target analysis from ${targetDate}, will generate new:`, error.message);
+        }
+      }
+      
+      fallbackDate = targetDate;
+      console.log(`🤖 Generating AI analysis using news data from ${targetDate} for today`);
+    }
 
+    // Generate AI analysis
+    try {
       // Check if API key is available
       if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your-api-key-here' || process.env.GEMINI_API_KEY === 'your_local_gemini_api_key_here') {
         console.log('ℹ️  Gemini API key not configured, using fallback summary');
         const fallbackResult = this.generateFallbackSummary(newsItems);
-        const timestamp = moment().format('YYYYMMDD_HHmmss');
+        const timestamp = getBeijingTime().format('YYYYMMDD_HHmmss');
         const analysisWithMeta = {
           ...fallbackResult,
           generated_at: timestamp,
-          news_date: today
+          news_date: fallbackDate || today
         };
-        await fs.writeJson(analysisFile, analysisWithMeta);
-        console.log(`💾 Saved fallback analysis to ${analysisFile}`);
+        const actualAnalysisFile = path.join(this.analysisDir, `${fallbackDate || today}.json`);
+        await fs.writeJson(actualAnalysisFile, analysisWithMeta);
+        console.log(`💾 Saved fallback analysis to ${actualAnalysisFile}`);
         return fallbackResult;
       }
 
@@ -330,9 +336,9 @@ class NewsArchiveBuilder {
         return baseInfo;
       }).join('\n\n');
 
-      const prompt = `你是一名专注于政策驱动投资的顶尖策略分析师，擅长从新闻联播中识别结构性投资机会。请基于以下${newsItems.length}条今日新闻，为机构投资者提供可直接纳入投资决策的深度分析。
+      const prompt = `你是一名专注于政策驱动投资的顶尖策略分析师，擅长从新闻联播中识别结构性投资机会。请基于以下${newsItems.length}条${fallbackDate ? `${fallbackDate}的` : '今日'}新闻，为机构投资者提供可直接纳入投资决策的深度分析${fallbackDate ? `（今日暂无新闻，此分析基于最近的新闻数据）` : ''}。
 
---- 今日新闻 ---
+--- ${fallbackDate ? `${fallbackDate}新闻` : '今日新闻'} ---
 ${newsText}
 --- 结束 ---
 
@@ -347,11 +353,11 @@ ${newsText}
   },
   "opportunity_analysis": [
     {
-      "theme": "政策主题（按新闻相关性由高到低排序，最好能生成六个以上，但不要编造与新闻无关的主题）",
+      "theme": "政策主题（按新闻相关性由高到低排序，最好能生成六个或以上，但不要编造与新闻无关的主题）",
       "impact": "政策对市场的影响描述，如有资金规模请注明",
       "actionable_advice": "一句话叙述具体的投资角度，对可能受益的细分领域或股票类型给出明确的可执行投资建议",
-      "core_stocks": ["string"], // 4-6只核心股票[名称(代码)]，选相关性最高，流动性好的龙头
-      "sector_etfs": ["string"], // 1-2只相关性最高的行业ETF[名称(代码)]
+      "core_stocks": ["string"], // 6-8只核心股票[名称(代码)]，选相关性最高，流动性好的龙头
+      "sector_etfs": ["string"], // 1-4只相关性最高的行业ETF[名称(代码)]
       "related_news_ids": ["string"] // 用于生成这个政策主题的新闻video_id，list the one most relevant ID
   ]
 }
@@ -366,7 +372,7 @@ ${newsText}
 **内容质量要求：**
 
 ✅ **必须做到**：
-- 每个机会都要提供至少3只具体股票和1只ETF，但不要胡乱编造
+- 每个机会都要提供至少5只相关股票和1只ETF，但不要胡乱编造
 - 所有内容必须基于当日新闻联播，尽量提供新闻中具体数据和规模的支持
 - 股票选择流动性好的行业龙头，ETF选择跟踪相关行业的宽基指数
 - 用投资者熟悉的专业术语但避免jargon
@@ -427,18 +433,20 @@ ${newsText}
         summary: analysis.summary,
         total_news: newsItems.length,
         opportunity_analysis: analysis.opportunity_analysis,
-        has_data: true
+        has_data: true,
+        ...(fallbackDate ? { fallback_from: fallbackDate } : {})
       };
 
       // Save analysis with timestamp
-      const timestamp = moment().format('YYYYMMDD_HHmmss');
+      const timestamp = getBeijingTime().format('YYYYMMDD_HHmmss');
       const analysisWithMeta = {
         ...result,
         generated_at: timestamp,
-        news_date: today
+        news_date: fallbackDate || today
       };
-      await fs.writeJson(analysisFile, analysisWithMeta);
-      console.log(`💾 Saved analysis to ${analysisFile}`);
+      const actualAnalysisFile = path.join(this.analysisDir, `${fallbackDate || today}.json`);
+      await fs.writeJson(actualAnalysisFile, analysisWithMeta);
+      console.log(`💾 Saved analysis to ${actualAnalysisFile}`);
 
       return result;
       
@@ -526,9 +534,9 @@ ${newsText}
     <main class="container">
         <!-- Introduction Section -->
         <section class="intro-section">
-            <h1>新闻联播趋势分析</h1>
-            <p class="intro-text">
-                通过AI深度分析每日新闻联播内容，识别政策驱动的投资机会，为投资者提供数据支撑的趋势洞察。
+            <h1 style="font-size: 2.8rem; font-weight: 700; color: #1a202c; text-align: center; margin: 0 0 1.5rem 0; line-height: 1.1;">新闻联播投资分析</h1>
+            <p style="font-size: 1.2rem; color: #4a5568; text-align: center; margin: 0; line-height: 1.6; max-width: 650px; margin: 0 auto; font-weight: 400;">
+                实时解码新闻联播，AI识别趋势投资机会。
             </p>
         </section>
 
@@ -555,10 +563,10 @@ ${newsText}
                 <div class="core-logic-card">
                     <h3>核心逻辑</h3>
                     <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
-                    <div class="meta-info">
-                        <span class="update-time">更新时间: ${dailySummary.has_data ? moment().format('MM-DD HH:mm') : '暂无数据'}</span>
-                        ${dailySummary.fallback_from ? `<span class="fallback-notice" style="color: #f59e0b; font-size: 0.8rem;">(基于${moment(dailySummary.fallback_from, 'YYYYMMDD').format('MM-DD')}分析)</span>` : ''}
-                        <a href="/archive/${moment().format('YYYY')}/${moment().format('YYYYMMDD')}.html" class="news-count read-more">
+                    <div class="meta-info" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <span class="update-time">更新时间: ${dailySummary.has_data ? new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '暂无数据'}</span>
+                        ${dailySummary.fallback_from ? `<span class="fallback-notice" style="color: #f59e0b; font-size: 0.8rem;">基于${moment(dailySummary.fallback_from, 'YYYYMMDD').format('MM-DD')}分析</span>` : ''}
+                        <a href="/archive/${moment(dailySummary.fallback_from || moment().format('YYYYMMDD'), 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || moment().format('YYYYMMDD')}.html" class="news-count read-more">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14,2 14,8 20,8"></polyline>
@@ -581,7 +589,7 @@ ${newsText}
                 ${dailySummary.opportunity_analysis.map((opportunity, index) => `
                     <div class="opportunity-card">
                         ${opportunity.related_news_ids?.length > 0 ? 
-                            `<h4><a href="/archive/${moment().format('YYYY')}/${moment().format('YYYYMMDD')}.html#${opportunity.related_news_ids[0]}" style="color: inherit; text-decoration: none;">${opportunity.theme}</a></h4>` :
+                            `<h4><a href="/archive/${moment(dailySummary.fallback_from || moment().format('YYYYMMDD'), 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || moment().format('YYYYMMDD')}.html#${opportunity.related_news_ids[0]}" style="color: inherit; text-decoration: none;">${opportunity.theme}</a></h4>` :
                             `<h4>${opportunity.theme}</h4>`
                         }
                         ${opportunity.core_stocks?.length > 0 ? `

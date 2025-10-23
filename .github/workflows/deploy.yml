@@ -9,8 +9,8 @@ permissions:
 
 on:
   schedule:
-    # Run twice daily at 8 AM and 8 PM Beijing time (UTC+8)
-    - cron: '0 1,13 * * *'  # 9 AM and 9 PM Beijing time (UTC+8)
+    # Run twice daily at 9 AM and 9 PM Beijing time (UTC+8)
+    - cron: '0 1,12 * * *'  # 9 AM and 9 PM Beijing time (UTC+8)
   push:
     branches: [ main ]
   workflow_dispatch:  # Allow manual trigger

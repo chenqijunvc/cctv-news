@@ -301,12 +301,14 @@ window.copyQuote = function() {
         // Show feedback
         const button = document.querySelector('.btn-copy');
         if (button) {
-            const originalText = button.textContent;
-            button.textContent = '已复制!';
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制!';
             button.style.background = 'var(--primary-light)';
+            button.style.color = 'white';
             setTimeout(() => {
-                button.textContent = originalText;
+                button.innerHTML = originalHTML;
                 button.style.background = '';
+                button.style.color = '';
             }, 2000);
         }
     }).catch(err => {
@@ -320,12 +322,14 @@ window.copyQuote = function() {
             document.execCommand('copy');
             const button = document.querySelector('.btn-copy');
             if (button) {
-                const originalText = button.textContent;
-                button.textContent = '已复制!';
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制!';
                 button.style.background = 'var(--primary-light)';
+                button.style.color = 'white';
                 setTimeout(() => {
-                    button.textContent = originalText;
+                    button.innerHTML = originalHTML;
                     button.style.background = '';
+                    button.style.color = '';
                 }, 2000);
             }
         } catch (fallbackErr) {
