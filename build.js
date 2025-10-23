@@ -517,7 +517,7 @@ ${newsText}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
 </head>
 <body>
     <header>
@@ -535,20 +535,19 @@ ${newsText}
         <!-- Introduction Section -->
     <section class="intro-section">
       <div class="intro-content">
-        <h1>新闻联播投资信号分析</h1>
-        <p class="value-proposition">
-            <span class="value-badge">政策信号识别</span>
-            <span class="value-badge">投资机会挖掘</span>
-            <span class="value-badge">每日自动更新</span>
-        </p>
+        <h1>新闻联播 AI 趋势追踪系统</h1>
+        <div class="features-list">
+            <span class="feature-item">✓ 新闻联播信号解读</span>
+            <span class="feature-item">✓ 主题投资趋势挖掘</span>
+            <span class="feature-item">✓ 每日自动实时更新</span>
+        </div>
       </div>
     </section>
 
         <!-- Trend Insights Section -->
         <section class="analysis-section">
             <div class="section-header">
-                <h2>今日投资洞察</h2>
-                <p class="section-subtitle">基于最新新闻联播内容的AI精炼提要</p>
+                <h2>AI 解读：分析今日新闻联播</h2>
             </div>
             <div class="analysis-summary">
         <div class="daily-quote-card">
@@ -564,11 +563,11 @@ ${newsText}
         </div>
         <div class="core-logic-card">
           <div class="card-header">
-            <h3>投资逻辑解析</h3>
+            <h3>投资信号解读</h3>
           </div>
           <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
           <div class="data-source">
-            <span class="source-info">分析基于 <a href="/archive/${moment(dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.news_date}.html" class="news-source-link">${moment(dailySummary.news_date, 'YYYYMMDD').format('YYYY年MM月DD日')} 新闻联播</a> ${dailySummary.total_news || 0} 条新闻内容</span>
+            <span class="source-info">分析基于 <a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html" class="news-source-link">${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY年MM月DD日')} 新闻联播 </a> ${dailySummary.total_news || 0} 条新闻内容</span>
           </div>
         </div>
             </div>
@@ -578,8 +577,7 @@ ${newsText}
         ${dailySummary.opportunity_analysis?.length > 0 ? `
         <section class="opportunities-section">
             <div class="section-header">
-                <h2>具体投资机会</h2>
-                <p class="section-subtitle">AI识别出的政策驱动型投资主题</p>
+                <h2>AI 智选：捕捉主题投资趋势</h2>
             </div>
             <div class="cards-grid">
                 ${dailySummary.opportunity_analysis.map((opportunity, index) => `
@@ -612,8 +610,8 @@ ${newsText}
                 </div>
 
                 <div class="news-interpretation">
-                  <h5>新闻解读</h5>
-                  <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${moment(dailySummary.fallback_from || moment().format('YYYYMMDD'), 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || moment().format('YYYYMMDD')}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">查看相关新闻来源 →</a>` : ''}</p>
+                  <h5>机会解读</h5>
+                  <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">新闻来源→</a>` : ''}</p>
                 </div>
                     </div>
                 `).join('')}
@@ -626,7 +624,7 @@ ${newsText}
                 <p class="section-subtitle">AI识别出的政策驱动型投资主题</p>
             </div>
             <div class="empty-state">
-                <h4>🤔 今日暂无明确投资机会</h4>
+                <h4>今日暂无明确投资机会</h4>
                 <p>今日新闻内容中暂未识别出明确的政策驱动型投资机会，建议关注后续政策动向。</p>
             </div>
         </section>
@@ -700,19 +698,19 @@ ${newsText}
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>🎯 我们的价值</h4>
-                    <p>将复杂的政策新闻转化为清晰的投资信号，帮助您把握政策驱动的市场机会</p>
+                    <h4>我们的价值</h4>
+                    <p>将新闻联播内容转化为清晰的投资信号，帮助您把握政策驱动的市场机会</p>
                 </div>
                 <div class="footer-section">
-                    <h4>📊 数据来源</h4>
-                    <p>央视新闻联播 · AI深度分析 · 实时更新</p>
+                    <h4>核心功能</h4>
+                    <p>央视新闻联播 · AI分析生成 · 实时更新</p>
                 </div>
             </div>
-            <p class="disclaimer">数据来源：CCTV 官网 | AI分析仅供参考，投资需谨慎</p>
+            <p class="disclaimer">数据来源：CCTV 官网 | 本站分析仅供参考，投资需谨慎</p>
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
+    <script src="/js/main.js?v=${Date.now()}"></script>
 </body>
 </html>`;
     
@@ -784,14 +782,14 @@ ${newsText}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
 </head>
 <body>
     <header>
         <div class="container">
             <a href="/" class="site-title">trendfollowing.ai</a>
             <nav class="nav-menu">
-                <a href="/" class="nav-link active">CCTV Trend</a>
+                <a href="/" class="nav-link active">新闻联播</a>
                 <!-- <a href="#" class="nav-link">Product 2</a> -->
                 <!-- <a href="#" class="nav-link">Product 3</a> -->
             </nav>
@@ -826,7 +824,7 @@ ${newsText}
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
+    <script src="/js/main.js?v=${Date.now()}"></script>
 </body>
 </html>`;
   }
@@ -845,7 +843,7 @@ ${newsText}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
 </head>
 <body>
     <header>
@@ -870,9 +868,9 @@ ${newsText}
                 <article class="news-item">
                     <h2 id="${video.video_id}">${this.cleanTitle(video.video_title)}</h2>
                     <div class="news-meta" style="flex-direction: row; flex-wrap: wrap; gap: 1rem;">
-                        <span>⏰ ${video.video_length}</span>
-                        <span>🏷️ ${video.news_hl_tag || 'General'}</span>
-                        <span>📅 ${video.pub_date}</span>
+                        <span> ${video.video_length}</span>
+                        <span> ${video.news_hl_tag || 'General'}</span>
+                        <span> ${video.pub_date}</span>
                     </div>
                     ${video.video_image ? `<img src="${video.video_image}" alt="${video.video_title}" class="news-image" style="max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0;">` : ''}
                     <p class="news-brief">${video.brief || ''}</p>
@@ -897,7 +895,7 @@ ${newsText}
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
+    <script src="/js/main.js?v=${Date.now()}"></script>
 </body>
 </html>`;
   }

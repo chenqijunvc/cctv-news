@@ -310,7 +310,7 @@ window.copyQuote = function() {
         const button = document.querySelector('.btn-copy');
         if (button) {
             const originalHTML = button.innerHTML;
-            button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制!';
+            button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制！';
             button.style.background = 'var(--primary-light)';
             button.style.color = 'white';
             setTimeout(() => {
@@ -331,7 +331,7 @@ window.copyQuote = function() {
             const button = document.querySelector('.btn-copy');
             if (button) {
                 const originalHTML = button.innerHTML;
-                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制!';
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制！';
                 button.style.background = 'var(--primary-light)';
                 button.style.color = 'white';
                 setTimeout(() => {
@@ -370,8 +370,8 @@ window.copyToClipboard = function(text, element) {
         // Show feedback on the clicked element
         if (element) {
             const originalText = element.textContent;
-            element.textContent = '已复制!';
-            element.style.background = 'var(--primary-light)';
+            element.textContent = '已复制！';
+            element.style.background = 'var(--primary-teal)';
             setTimeout(() => {
                 element.textContent = originalText;
                 element.style.background = '';
@@ -389,8 +389,8 @@ window.copyToClipboard = function(text, element) {
             document.execCommand('copy');
             if (element) {
                 const originalText = element.textContent;
-                element.textContent = '已复制!';
-                element.style.background = 'var(--primary-light)';
+                element.textContent = '已复制！';
+                element.style.background = 'var(--primary-teal)';
                 setTimeout(() => {
                     element.textContent = originalText;
                     element.style.background = '';
