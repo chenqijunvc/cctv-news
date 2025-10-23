@@ -294,7 +294,15 @@ window.copyQuote = function() {
     const quoteText = quoteElement.textContent.trim();
     // Remove the Chinese quotes for sharing
     const cleanQuoteText = quoteText.replace(/^「|」$/g, '');
-    const shareText = `${cleanQuoteText} @trendfollowing.ai`;
+    
+    // Get the date from the data source
+    const sourceLink = document.querySelector('.news-source-link');
+    let dateText = '';
+    if (sourceLink) {
+        dateText = sourceLink.textContent.trim();
+    }
+    
+    const shareText = `"${cleanQuoteText}" 基于${dateText}新闻联播，获取每日分析@trendfollowing.ai`;
 
     // Copy to clipboard
     navigator.clipboard.writeText(shareText).then(() => {
@@ -397,9 +405,37 @@ window.copyToClipboard = function(text, element) {
     });
 };
 
-// Initialize when DOM is loaded
+// Add tooltip functionality
+function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', showTooltip);
+        element.addEventListener('mouseleave', hideTooltip);
+    });
+}
+
+function showTooltip(e) {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = e.target.dataset.tooltip;
+    document.body.appendChild(tooltip);
+    
+    const rect = e.target.getBoundingClientRect();
+    tooltip.style.left = rect.left + 'px';
+    tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
+}
+
+function hideTooltip() {
+    const tooltip = document.querySelector('.tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
+}
+
+// Initialize tooltips when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new NewsArchive();
+    initTooltips();
 });
 
 // Add search result styling

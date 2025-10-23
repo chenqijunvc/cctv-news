@@ -533,89 +533,104 @@ ${newsText}
 
     <main class="container">
         <!-- Introduction Section -->
-        <section class="intro-section">
-            <h1 style="font-size: 2.8rem; font-weight: 700; color: #1a202c; text-align: center; margin: 0 0 1.5rem 0; line-height: 1.1;">新闻联播投资分析</h1>
-            <p style="font-size: 1.2rem; color: #4a5568; text-align: center; margin: 0; line-height: 1.6; max-width: 650px; margin: 0 auto; font-weight: 400;">
-                实时解码新闻联播，AI识别趋势投资机会。
-            </p>
-        </section>
+    <section class="intro-section">
+      <div class="intro-content">
+        <h1>新闻联播投资信号分析</h1>
+        <p class="value-proposition">
+            <span class="value-badge">政策信号识别</span>
+            <span class="value-badge">投资机会挖掘</span>
+            <span class="value-badge">每日自动更新</span>
+        </p>
+      </div>
+    </section>
 
         <!-- Trend Insights Section -->
-        <section>
-            <h2>趋势洞察</h2>
+        <section class="analysis-section">
+            <div class="section-header">
+                <h2>今日投资洞察</h2>
+                <p class="section-subtitle">基于最新新闻联播内容的AI精炼提要</p>
+            </div>
             <div class="analysis-summary">
-                <div class="daily-quote-card">
-                    <h3>今日观点</h3>
-                    <p> ${dailySummary.summary?.investment_quote || '投资需谨慎，关注政策导向趋势'} </p>
-                    <div class="meta-info">
-                        <button class="btn-copy read-more" onclick="copyQuote()" title="复制金句">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="18" cy="5" r="3"></circle>
-                                <circle cx="6" cy="12" r="3"></circle>
-                                <circle cx="18" cy="19" r="3"></circle>
-                                <path d="m8.5 14 7-7"></path>
-                                <path d="m8.5 10 7 7"></path>
-                            </svg>
-                            分享
-                        </button>
-                    </div>
-                </div>
-                <div class="core-logic-card">
-                    <h3>核心逻辑</h3>
-                    <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
-                    <div class="meta-info" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                        <span class="update-time">更新时间: ${dailySummary.has_data ? new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '暂无数据'}</span>
-                        ${dailySummary.fallback_from ? `<span class="fallback-notice" style="color: #f59e0b; font-size: 0.8rem;">基于${moment(dailySummary.fallback_from, 'YYYYMMDD').format('MM-DD')}分析</span>` : ''}
-                        <a href="/archive/${moment(dailySummary.fallback_from || moment().format('YYYYMMDD'), 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || moment().format('YYYYMMDD')}.html" class="news-count read-more">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14,2 14,8 20,8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10,9 9,9 8,9"></polyline>
-                            </svg>
-                            ${dailySummary.total_news || 0} 条新闻
-                        </a>
-                    </div>
-                </div>
+        <div class="daily-quote-card">
+          <div class="card-header">
+            <h3>今日投资观点</h3>
+          </div>
+          <p class="investment-quote"> ${dailySummary.summary?.investment_quote || '投资需谨慎，关注政策导向趋势'} </p>
+          <div class="meta-info">
+            <button class="btn-copy read-more" onclick="copyQuote()" title="分享投资观点">
+              🔗 分享观点
+            </button>
+          </div>
+        </div>
+        <div class="core-logic-card">
+          <div class="card-header">
+            <h3>投资逻辑解析</h3>
+          </div>
+          <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
+          <div class="data-source">
+            <span class="source-info">分析基于 <a href="/archive/${moment(dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.news_date}.html" class="news-source-link">${moment(dailySummary.news_date, 'YYYYMMDD').format('YYYY年MM月DD日')} 新闻联播</a> ${dailySummary.total_news || 0} 条新闻内容</span>
+          </div>
+        </div>
             </div>
         </section>
 
         <!-- Investment Opportunities Section -->
         ${dailySummary.opportunity_analysis?.length > 0 ? `
-        <section>
-            <h2>投资机会</h2>
+        <section class="opportunities-section">
+            <div class="section-header">
+                <h2>具体投资机会</h2>
+                <p class="section-subtitle">AI识别出的政策驱动型投资主题</p>
+            </div>
             <div class="cards-grid">
                 ${dailySummary.opportunity_analysis.map((opportunity, index) => `
                     <div class="opportunity-card">
-                        ${opportunity.related_news_ids?.length > 0 ? 
-                            `<h4><a href="/archive/${moment(dailySummary.fallback_from || moment().format('YYYYMMDD'), 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || moment().format('YYYYMMDD')}.html#${opportunity.related_news_ids[0]}" style="color: inherit; text-decoration: none;">${opportunity.theme}</a></h4>` :
-                            `<h4>${opportunity.theme}</h4>`
-                        }
-                        ${opportunity.core_stocks?.length > 0 ? `
-                        <div class="stocks-section">
-                            <h5>核心标的：</h5>
-                            <div class="stocks-list">
-                                ${opportunity.core_stocks.map(stock => `<button class="stock-tag" onclick="copyToClipboard('${stock}', this)">${stock}</button>`).join('')}
-                            </div>
+                        <div class="opportunity-header">
+                            <h4>${opportunity.theme}</h4>
                         </div>
-                        ` : ''}
-                        ${opportunity.sector_etfs?.length > 0 ? `
-                        <div class="etfs-section">
-                            <h5>行业ETF：</h5>
-                            <div class="etfs-list">
-                                ${opportunity.sector_etfs.map(etf => `<button class="etf-tag" onclick="copyToClipboard('${etf}', this)">${etf}</button>`).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-                        <div class="actionable-advice-section">
-                            <span class="actionable-advice">${opportunity.actionable_advice}</span>
-                        </div>
+                        
+                ${opportunity.core_stocks?.length > 0 ? `
+                <div class="investment-section">
+                  <h5>重点关注股票</h5>
+                  <div class="stocks-list">
+                    ${opportunity.core_stocks.map(stock => `<button class="stock-tag" onclick="copyToClipboard('${stock}', this)">${stock}</button>`).join('')}
+                  </div>
+                </div>
+                ` : ''}
+
+                ${opportunity.sector_etfs?.length > 0 ? `
+                <div class="etf-section">
+                  <h5>行业ETF参考</h5>
+                  <div class="etfs-list">
+                    ${opportunity.sector_etfs.map(etf => `<button class="etf-tag" onclick="copyToClipboard('${etf}', this)">${etf}</button>`).join('')}
+                  </div>
+                </div>
+                ` : ''}
+
+                <div class="action-section">
+                  <h5>操作建议</h5>
+                  <p class="actionable-advice">${opportunity.actionable_advice}</p>
+                </div>
+
+                <div class="news-interpretation">
+                  <h5>新闻解读</h5>
+                  <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${moment(dailySummary.fallback_from || moment().format('YYYYMMDD'), 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || moment().format('YYYYMMDD')}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">查看相关新闻来源 →</a>` : ''}</p>
+                </div>
                     </div>
                 `).join('')}
             </div>
         </section>
-        ` : ''}
+        ` : `
+        <section class="opportunities-section">
+            <div class="section-header">
+                <h2>具体投资机会</h2>
+                <p class="section-subtitle">AI识别出的政策驱动型投资主题</p>
+            </div>
+            <div class="empty-state">
+                <h4>🤔 今日暂无明确投资机会</h4>
+                <p>今日新闻内容中暂未识别出明确的政策驱动型投资机会，建议关注后续政策动向。</p>
+            </div>
+        </section>
+        `}
 
         <!-- Latest News Section - Hidden for now
         <section>
@@ -683,7 +698,17 @@ ${newsText}
 
     <footer>
         <div class="container">
-            <p>数据来源：CCTV 官网 | 仅供学习使用</p>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>🎯 我们的价值</h4>
+                    <p>将复杂的政策新闻转化为清晰的投资信号，帮助您把握政策驱动的市场机会</p>
+                </div>
+                <div class="footer-section">
+                    <h4>📊 数据来源</h4>
+                    <p>央视新闻联播 · AI深度分析 · 实时更新</p>
+                </div>
+            </div>
+            <p class="disclaimer">数据来源：CCTV 官网 | AI分析仅供参考，投资需谨慎</p>
         </div>
     </footer>
 
