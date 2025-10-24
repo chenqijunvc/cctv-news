@@ -302,7 +302,7 @@ window.copyQuote = function() {
         dateText = sourceLink.textContent.trim();
     }
     
-    const shareText = `"${cleanQuoteText}" 基于${dateText}新闻联播，获取每日分析@trendfollowing.ai`;
+    const shareText = `"${cleanQuoteText}" 基于${dateText}，每日分析@trendfollowing.ai`;
 
     // Copy to clipboard
     navigator.clipboard.writeText(shareText).then(() => {
@@ -311,8 +311,8 @@ window.copyQuote = function() {
         if (button) {
             const originalHTML = button.innerHTML;
             button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制！';
-            button.style.background = 'var(--primary-light)';
-            button.style.color = 'white';
+            button.style.background = 'var(--primary-teal-light)';
+            button.style.color = 'var(--primary-teal-dark)';
             setTimeout(() => {
                 button.innerHTML = originalHTML;
                 button.style.background = '';
@@ -332,8 +332,8 @@ window.copyQuote = function() {
             if (button) {
                 const originalHTML = button.innerHTML;
                 button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制！';
-                button.style.background = 'var(--primary-light)';
-                button.style.color = 'white';
+                button.style.background = 'var(--primary-teal-light)';
+                button.style.color = 'var(--primary-teal-dark)';
                 setTimeout(() => {
                     button.innerHTML = originalHTML;
                     button.style.background = '';
