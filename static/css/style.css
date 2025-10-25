@@ -131,8 +131,7 @@ header .container {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    word-wrap: break-word;
-    white-space: normal;
+    white-space: nowrap;
     line-height: 1.2;
 }
 
@@ -498,6 +497,7 @@ section h2 {
 
     .site-title {
         font-size: 1.35rem;
+        white-space: nowrap;
     }
     
     .intro-section h1 {
@@ -552,6 +552,7 @@ section h2 {
     .site-title {
         font-size: 1.5rem;
         flex: 0; /* Let it shrink based on content, not take up all space */
+        white-space: nowrap;
     }
 
     .container {

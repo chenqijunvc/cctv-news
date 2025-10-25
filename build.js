@@ -573,7 +573,18 @@ ${newsText}
           </div>
           <p>${dailySummary.summary?.core_logic || '今日新闻数据暂未更新'}</p>
           <div class="data-source">
-            <span class="source-info">分析基于 <a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html" class="news-source-link">${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY年MM月DD日')} 新闻联播 </a></span>
+            <span class="source-info">分析基于 <a href="/archive/${(() => {
+              const dateStr = dailySummary.fallback_from || dailySummary.news_date;
+              const dateMoment = moment(dateStr, 'YYYYMMDD');
+              return dateMoment.isValid() ? dateMoment.format('YYYY') : '2025';
+            })()}/${(() => {
+              const dateStr = dailySummary.fallback_from || dailySummary.news_date;
+              return dateStr || '20251025';
+            })()}.html" class="news-source-link">${(() => {
+              const dateStr = dailySummary.fallback_from || dailySummary.news_date;
+              const dateMoment = moment(dateStr, 'YYYYMMDD');
+              return dateMoment.isValid() ? dateMoment.format('YYYY年MM月DD日') : '2025年10月25日';
+            })()} 新闻联播 </a></span>
           </div>
         </div>
             </div>
@@ -618,7 +629,14 @@ ${newsText}
 
             <div class="news-interpretation">
               <h5>机会解读</h5>
-              <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${moment(dailySummary.fallback_from || dailySummary.news_date, 'YYYYMMDD').format('YYYY')}/${dailySummary.fallback_from || dailySummary.news_date}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">新闻来源→</a>` : ''}</p>
+              <p class="impact-text">${opportunity.impact} ${opportunity.related_news_ids?.length > 0 ? `<a href="/archive/${(() => {
+                const dateStr = dailySummary.fallback_from || dailySummary.news_date;
+                const dateMoment = moment(dateStr, 'YYYYMMDD');
+                return dateMoment.isValid() ? dateMoment.format('YYYY') : '2025';
+              })()}/${(() => {
+                const dateStr = dailySummary.fallback_from || dailySummary.news_date;
+                return dateStr || '20251025';
+              })()}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">新闻来源→</a>` : ''}</p>
             </div>
                 </div>
             `).join('')}
@@ -646,7 +664,10 @@ ${newsText}
                             <h4>${this.cleanTitle(news.video_title)}</h4>
                         </a>
                         <div class="news-meta">
-                            <span>${moment(news.date, 'YYYYMMDD').format('YYYY-MM-DD')}</span>
+                            <span>${(() => {
+                              const dateMoment = moment(news.date, 'YYYYMMDD');
+                              return dateMoment.isValid() ? dateMoment.format('YYYY-MM-DD') : news.date;
+                            })()}</span>
                         </div>
                         <p class="news-brief">${this.truncateSummary(this.extractSummaryFromContent(news.video_detail?.content), 100)}...</p>
                         <a href="/archive/${news.year}/${news.date}.html#${news.video_id}" class="read-more">阅读更多</a>
@@ -793,7 +814,7 @@ ${newsText}
 <body>
     <header>
         <div class="container">
-            <a href="/" class="site-title">AI趋势跟踪系统</a>
+            <a href="/" class="site-title">Trendfollowing.AI</a>
             <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
                 <span class="hamburger"></span>
             </button>
@@ -848,7 +869,10 @@ ${newsText}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${moment(dayInfo.date, 'YYYYMMDD').format('YYYY年MM月DD日')}新闻 - CCTV 新闻联播</title>
+    <title>${(() => {
+      const dateMoment = moment(dayInfo.date, 'YYYYMMDD');
+      return dateMoment.isValid() ? dateMoment.format('YYYY年MM月DD日') : dayInfo.date;
+    })()}新闻 - CCTV 新闻联播</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -857,7 +881,7 @@ ${newsText}
 <body>
     <header>
         <div class="container">
-            <a href="/" class="site-title">AI趋势跟踪系统</a>
+            <a href="/" class="site-title">Trendfollowing.AI</a>
             <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
                 <span class="hamburger"></span>
             </button>
@@ -870,7 +894,10 @@ ${newsText}
     </header>
 
     <main class="container">
-        <h1>${moment(dayInfo.date, 'YYYYMMDD').format('YYYY年MM月DD日')}</h1>
+        <h1>${(() => {
+      const dateMoment = moment(dayInfo.date, 'YYYYMMDD');
+      return dateMoment.isValid() ? dateMoment.format('YYYY年MM月DD日') : dayInfo.date;
+    })()}</h1>
         <p style="text-align: center; margin-bottom: 3rem; color: #64748b;">
             共 ${data.videoList.length} 条新闻
         </p>
