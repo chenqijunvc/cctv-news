@@ -77,6 +77,8 @@ class NewsArchiveBuilder {
     
     // Generate HTML pages
     await this.generateHomePage(newsIndex);
+    await this.generateAnalysisPage(newsIndex);
+    await this.generateOpportunitiesPage(newsIndex);
     await this.generateArchivePages(newsIndex);
     await this.generateAPIEndpoints(newsIndex);
     
@@ -357,7 +359,7 @@ ${newsText}
       "impact": "政策对市场的影响描述，如有资金规模请注明",
       "actionable_advice": "一句话叙述具体的投资角度，对可能受益的细分领域或股票类型给出明确的可执行投资建议",
       "core_stocks": ["string"], // 6-8只核心股票[名称(代码)]，选相关性最高，流动性好的龙头
-      "sector_etfs": ["string"], // 1-4只相关性最高的行业ETF[名称(代码)]
+      "sector_etfs": ["string"], // 1-4只相关性最高的行业ETF[名称(代码)],尽量选择易方达公司的流动性好的产品
       "related_news_ids": ["string"] // 用于生成这个政策主题的新闻video_id，list the one most relevant ID
   ]
 }
@@ -507,9 +509,6 @@ ${newsText}
   async generateHomePage(index) {
     console.log('🏠 Generating home page...');
 
-    // Generate AI-powered daily summary
-    const dailySummary = await this.generateDailySummary();
-
     const html = `
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -530,9 +529,9 @@ ${newsText}
                 <span class="hamburger"></span>
             </button>
             <nav class="nav-menu" id="navMenu">
-                <a href="/" class="nav-link active">CCTV Trend</a>
-                <!-- <a href="#" class="nav-link">Product 2</a> -->
-                <!-- <a href="#" class="nav-link">Product 3</a> -->
+                <a href="/" class="nav-link active">首页</a>
+                <a href="/analysis.html" class="nav-link">今日新闻联播分析</a>
+                <a href="/opportunities.html" class="nav-link">投资主题机会</a>
             </nav>
         </div>
     </header>
@@ -541,19 +540,78 @@ ${newsText}
         <!-- Introduction Section -->
     <section class="intro-section">
       <div class="intro-content">
-        <h1>新闻联播 AI 趋势追踪</h1>
-        <div class="features-list">
-            <span class="feature-item">✓ 新闻联播信号解读</span>
-            <span class="feature-item">✓ 主题投资趋势挖掘</span>
-            <span class="feature-item">✓ 每日自动实时更新</span>
+        <h1>解读新闻联播，发现投资先机</h1>
+        <p class="hero-subtitle">AI每日提炼可执行的投资主题与个股信号</p>
+        <div class="cta-buttons">
+          <a href="/analysis.html" class="cta-button primary">今日新闻联播分析</a>
+          <a href="/opportunities.html" class="cta-button secondary">查看相关投资主题</a>
         </div>
       </div>
     </section>
+    </main>
 
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>我们的价值</h4>
+                    <p>将新闻联播内容转化为清晰的投资信号，帮助您把握政策驱动的市场机会</p>
+                </div>
+                <div class="footer-section">
+                    <h4>核心功能</h4>
+                    <p>央视新闻联播 · AI分析生成 · 实时更新</p>
+                </div>
+            </div>
+            <p class="disclaimer">数据来源：CCTV 官网 | 本站分析仅供参考，投资需谨慎</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js?v=${Date.now()}"></script>
+</body>
+</html>`;
+    
+    await fs.writeFile(path.join(this.outputDir, 'index.html'), html);
+  }
+
+  async generateAnalysisPage(index) {
+    console.log('📊 Generating analysis page...');
+
+    // Generate AI-powered daily summary
+    const dailySummary = await this.generateDailySummary();
+
+    const html = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日新闻联播分析 - Trend Following AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="site-title">Trendfollowing.AI</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link">首页</a>
+                <a href="/analysis.html" class="nav-link active">今日新闻联播分析</a>
+                <a href="/opportunities.html" class="nav-link">投资主题机会</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
         <!-- Trend Insights Section -->
-        <section class="analysis-section">
+        <section class="analysis-section" id="analysis-section">
             <div class="section-header">
                 <h2>AI 解读：分析今日新闻联播</h2>
+                <p class="section-subtitle">基于最新新闻联播内容，AI生成的投资信号解读</p>
             </div>
             <div class="analysis-summary">
         <div class="daily-quote-card">
@@ -589,17 +647,83 @@ ${newsText}
         </div>
             </div>
         </section>
+    </main>
 
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>我们的价值</h4>
+                    <p>将新闻联播内容转化为清晰的投资信号，帮助您把握政策驱动的市场机会</p>
+                </div>
+                <div class="footer-section">
+                    <h4>核心功能</h4>
+                    <p>央视新闻联播 · AI分析生成 · 实时更新</p>
+                </div>
+            </div>
+            <p class="disclaimer">数据来源：CCTV 官网 | 本站分析仅供参考，投资需谨慎</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js?v=${Date.now()}"></script>
+</body>
+</html>`;
+
+    await fs.writeFile(path.join(this.outputDir, 'analysis.html'), html);
+  }
+
+  async generateOpportunitiesPage(index) {
+    console.log('🎯 Generating opportunities page...');
+
+    // Generate AI-powered daily summary
+    const dailySummary = await this.generateDailySummary();
+
+    const html = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资主题机会 - Trend Following AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="site-title">Trendfollowing.AI</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link">首页</a>
+                <a href="/analysis.html" class="nav-link">今日新闻联播分析</a>
+                <a href="/opportunities.html" class="nav-link active">投资主题机会</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
         <!-- Investment Opportunities Section -->
         ${dailySummary.opportunity_analysis?.length > 0 ? `
-        <section class="opportunities-section">
+        <section class="opportunities-section" id="opportunities-section">
             <div class="section-header">
                 <h2>AI 智选：捕捉主题投资趋势</h2>
+                <p class="section-subtitle">基于新闻联播内容识别出的投资机会主题</p>
+                <div class="section-actions">
+                    <div class="theme-navigation">
+                        ${dailySummary.opportunity_analysis.map((opportunity, index) => 
+                            `<a href="#opportunity-${index}" class="theme-nav-btn" title="${opportunity.theme}">${opportunity.theme}</a>`
+                        ).join('')}
+                    </div>
+                </div>
             </div>
         </section>
         <div class="cards-grid">
             ${dailySummary.opportunity_analysis.map((opportunity, index) => `
-                <div class="opportunity-card">
+                <div class="opportunity-card" id="opportunity-${index}">
                     <div class="opportunity-header">
                         <h4>${opportunity.theme}</h4>
                     </div>
@@ -638,6 +762,10 @@ ${newsText}
                 return dateStr || '20251025';
               })()}.html#${opportunity.related_news_ids[0]}" class="news-source-inline">新闻来源→</a>` : ''}</p>
             </div>
+            
+            <div class="card-actions">
+              <button onclick="shareOpportunity('${opportunity.theme}', '${opportunity.core_stocks?.join(', ') || ''}', '${opportunity.sector_etfs?.join(', ') || ''}', '${opportunity.actionable_advice}')" class="card-share-btn">分享</button>
+            </div>
                 </div>
             `).join('')}
         </div>
@@ -653,72 +781,6 @@ ${newsText}
             </div>
         </section>
         `}
-
-        <!-- Latest News Section - Hidden for now
-        <section>
-            <h2>最新新闻</h2>
-            <div class="news-grid">
-                ${index.recentNews.slice(0, 6).map(news => `
-                    <div class="news-card">
-                        <a href="/archive/${news.year}/${news.date}.html#${news.video_id}" class="news-title-link">
-                            <h4>${this.cleanTitle(news.video_title)}</h4>
-                        </a>
-                        <div class="news-meta">
-                            <span>${(() => {
-                              const dateMoment = moment(news.date, 'YYYYMMDD');
-                              return dateMoment.isValid() ? dateMoment.format('YYYY-MM-DD') : news.date;
-                            })()}</span>
-                        </div>
-                        <p class="news-brief">${this.truncateSummary(this.extractSummaryFromContent(news.video_detail?.content), 100)}...</p>
-                        <a href="/archive/${news.year}/${news.date}.html#${news.video_id}" class="read-more">阅读更多</a>
-                    </div>
-                `).join('')}
-            </div>
-        </section>
-        -->
-
-        <!-- Search News Section - Hidden for now
-        <section class="search-section">
-            <h2>搜索新闻</h2>
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="输入关键词搜索...">
-            </div>
-            <div class="filter-controls">
-                <select id="yearFilter">
-                    <option value="">选择年份</option>
-                    ${Object.keys(index.years).sort().reverse().map(year => `<option value="${year}">${year}年</option>`).join('')}
-                </select>
-                <select id="monthFilter" disabled>
-                    <option value="">选择月份</option>
-                    ${Array.from({length: 12}, (_, i) => {
-                      const month = (i + 1).toString().padStart(2, '0');
-                      return `<option value="${month}">${month}月</option>`;
-                    }).join('')}
-                </select>
-                <select id="dateFilter" disabled>
-                    <option value="">选择日期</option>
-                    ${Array.from({length: 31}, (_, i) => {
-                      const date = (i + 1).toString().padStart(2, '0');
-                      return `<option value="${date}">${date}日</option>`;
-                    }).join('')}
-                </select>
-                <select id="categoryFilter">
-                    <option value="">所有分类</option>
-                    ${Object.keys(index.categories).sort().map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                </select>
-            </div>
-            <div id="searchResults"></div>
-        </section>
-        -->
-
-        <!-- <section>
-            <h2>按年份浏览</h2>
-            <div class="archive-nav">
-                ${Object.entries(index.years).sort().reverse().map(([year, data]) => `
-                    <a href="/archive/${year}/" class="year-link">${year}年</a>
-                `).join('')}
-            </div>
-        </section> -->
     </main>
 
     <footer>
@@ -740,8 +802,8 @@ ${newsText}
     <script src="/js/main.js?v=${Date.now()}"></script>
 </body>
 </html>`;
-    
-    await fs.writeFile(path.join(this.outputDir, 'index.html'), html);
+
+    await fs.writeFile(path.join(this.outputDir, 'opportunities.html'), html);
   }
 
   async generateArchivePages(index) {

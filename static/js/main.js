@@ -348,20 +348,90 @@ window.copyQuote = function() {
     });
 };
 
-window.shareNews = function(title, url) {
-    if (navigator.share) {
-        navigator.share({
-            title: title,
-            url: url
-        }).catch(err => console.log('Error sharing:', err));
-    } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(url).then(() => {
-            alert('链接已复制到剪贴板');
-        }).catch(() => {
-            // Further fallback: show the URL
-            prompt('复制此链接:', url);
-        });
+window.shareOpportunity = function(theme, stocks, etfs, advice) {
+    // Create shareable text
+    let shareText = `📈 ${theme}\n\n`;
+    
+    if (stocks) {
+        shareText += `💰 重点关注股票: ${stocks}\n`;
+    }
+    
+    if (etfs) {
+        shareText += `📊 行业ETF参考: ${etfs}\n`;
+    }
+    
+    shareText += `💡 操作建议: ${advice}\n\n`;
+    shareText += `基于每日AI解读@trendfollowing.ai`;
+
+    // Use textarea method for more reliable copying
+    const textArea = document.createElement('textarea');
+    textArea.value = shareText;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+            // Show success feedback
+            const button = event ? event.target : document.activeElement;
+            if (button && button.classList.contains('card-share-btn')) {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.5 14 7-7"></path><path d="m8.5 10 7 7"></path></svg> 已复制！';
+                button.style.background = 'var(--complementary-orange-medium)';
+                button.style.color = 'white';
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
+            }
+        } else {
+            throw new Error('Copy command was not successful');
+        }
+    } catch (err) {
+        console.error('Failed to copy:', err);
+        document.body.removeChild(textArea);
+        
+        // Fallback: show modal with text to copy manually
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-family: Arial, sans-serif;
+        `;
+        modal.innerHTML = `
+            <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <h3 style="margin-top: 0; color: #333;">分享内容</h3>
+                <p style="color: #666; margin-bottom: 15px;">请手动复制以下内容：</p>
+                <textarea style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; resize: vertical;" readonly>${shareText}</textarea>
+                <div style="text-align: right; margin-top: 15px;">
+                    <button onclick="this.parentElement.parentElement.parentElement.remove(); navigator.clipboard.writeText(\`${shareText.replace(/`/g, '\\`')}\`).then(() => alert('已复制到剪贴板！')).catch(() => alert('请手动选择并复制上方文本'));" style="padding: 8px 16px; background: var(--complementary-orange); color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">复制到剪贴板</button>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="padding: 8px 16px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">关闭</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Auto-select the text
+        setTimeout(() => {
+            const textarea = modal.querySelector('textarea');
+            textarea.focus();
+            textarea.select();
+        }, 100);
     }
 };
 
