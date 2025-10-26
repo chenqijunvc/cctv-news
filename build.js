@@ -530,8 +530,8 @@ ${newsText}
             </button>
             <nav class="nav-menu" id="navMenu">
                 <a href="/" class="nav-link active">首页</a>
-                <a href="/analysis.html" class="nav-link">今日新闻联播分析</a>
-                <a href="/opportunities.html" class="nav-link">投资主题机会</a>
+                <a href="/analysis.html" class="nav-link">今日分析</a>
+                <a href="/opportunities.html" class="nav-link">投资主题</a>
             </nav>
         </div>
     </header>
@@ -585,7 +585,7 @@ ${newsText}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今日新闻联播分析 - Trend Following AI</title>
+    <title>今日分析 - Trend Following AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -600,8 +600,8 @@ ${newsText}
             </button>
             <nav class="nav-menu" id="navMenu">
                 <a href="/" class="nav-link">首页</a>
-                <a href="/analysis.html" class="nav-link active">今日新闻联播分析</a>
-                <a href="/opportunities.html" class="nav-link">投资主题机会</a>
+                <a href="/analysis.html" class="nav-link active">今日分析</a>
+                <a href="/opportunities.html" class="nav-link">投资主题</a>
             </nav>
         </div>
     </header>
@@ -684,7 +684,7 @@ ${newsText}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>投资主题机会 - Trend Following AI</title>
+    <title>投资主题 - Trend Following AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -699,8 +699,8 @@ ${newsText}
             </button>
             <nav class="nav-menu" id="navMenu">
                 <a href="/" class="nav-link">首页</a>
-                <a href="/analysis.html" class="nav-link">今日新闻联播分析</a>
-                <a href="/opportunities.html" class="nav-link active">投资主题机会</a>
+                <a href="/analysis.html" class="nav-link">今日分析</a>
+                <a href="/opportunities.html" class="nav-link active">投资主题</a>
             </nav>
         </div>
     </header>
