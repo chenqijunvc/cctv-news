@@ -271,7 +271,8 @@ class NewsArchiveBuilder {
           },
           total_news: 0,
           opportunity_analysis: [],
-          has_data: false
+          has_data: false,
+          news_date: today
         };
         const timestamp = getBeijingTime().format('YYYYMMDD_HHmmss');
         const analysisWithMeta = {
@@ -325,7 +326,7 @@ class NewsArchiveBuilder {
         const actualAnalysisFile = path.join(this.analysisDir, `${fallbackDate || today}.json`);
         await fs.writeJson(actualAnalysisFile, analysisWithMeta);
         console.log(`💾 Saved fallback analysis to ${actualAnalysisFile}`);
-        return fallbackResult;
+        return { ...fallbackResult, news_date: fallbackDate || today };
       }
 
       // Prepare news data for Gemini - include full content for all items
@@ -439,6 +440,7 @@ ${newsText}
         total_news: newsItems.length,
         opportunity_analysis: analysis.opportunity_analysis,
         has_data: true,
+        news_date: fallbackDate || today,
         ...(fallbackDate ? { fallback_from: fallbackDate } : {})
       };
 
@@ -464,7 +466,8 @@ ${newsText}
         },
         total_news: '--',
         opportunity_analysis: [],
-        has_data: false
+        has_data: false,
+        news_date: today
       };
     }
   }
