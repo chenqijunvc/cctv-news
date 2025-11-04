@@ -393,7 +393,7 @@ def create_final_list():
     combined_df['代码'] = combined_df['name']
 
     # 计算最终组合权重
-    combined_df['权重'] = combined_df['基本面评分'] * np.sqrt(combined_df['市值（亿元）'])
+    combined_df['权重'] = combined_df['基本面评分'] * np.log(combined_df['市值（亿元）'])
     combined_df['权重'] = combined_df['权重'] / combined_df['权重'].sum()
 
     # 构建最终列表

@@ -900,7 +900,7 @@ ${newsText}
                         共 ${stockData.length} 只股票 | 数据更新时间: ${new Date().toLocaleString('zh-CN')}
                     </p>
                 </div>
-                <div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
                     <input type="text" id="stockSearch" class="search-input" placeholder="搜索股票名称或代码..." style="width: 250px;">
                 </div>
             </div>
@@ -915,11 +915,10 @@ ${newsText}
                     <table class="stock-table" id="selectedStocksTable">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" id="selectAllSelected" class="stock-checkbox"></th>
-                                <th>代码</th>
-                                <th>名称</th>
+                                <th class="sticky-column checkbox-column"><input type="checkbox" id="selectAllSelected" class="stock-checkbox"></th>
+                                <th class="sticky-column">股票</th>
                                 <th>行业</th>
-                                <th>最新价</th>
+                                <th>收盘价</th>
                                 <th>权重</th>
                                 <th>投资金额</th>
                                 <th>买入股数</th>
@@ -953,16 +952,16 @@ ${newsText}
                 <table class="stock-table" id="stockTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAll" class="stock-checkbox"></th>
-                            <th class="sortable" data-column="0">代码</th>
-                            <th class="sortable" data-column="1">名称</th>
-                            <th class="sortable" data-column="2">行业</th>
-                            <th class="sortable" data-column="3">市值</th>
-                            <th class="sortable" data-column="4">最新价</th>
-                            <th class="sortable" data-column="5">基本面评分</th>
-                            <th class="sortable" data-column="6">技术指标</th>
-                            <th class="sortable" data-column="7">人气排名</th>
-                            <th class="sortable" data-column="8">人气变化</th>
+                            <th class="sticky-column checkbox-column"><input type="checkbox" id="selectAll" class="stock-checkbox"></th>
+                            <th class="sticky-column">股票</th>
+                            <th class="sortable" data-column="0">行业</th>
+                            <th class="sortable" data-column="1">市值</th>
+                            <th class="sortable" data-column="2">收盘价</th>
+                            <th class="sortable" data-column="3">基本面评分</th>
+                            <th class="sortable" data-column="4">技术指标</th>
+                            <th class="sortable" data-column="5">人气排名</th>
+                            <th class="sortable" data-column="6">人气变化</th>
+                            <th class="sortable" data-column="7">权重</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1027,12 +1026,13 @@ ${newsText}
                             
                             return `
                             <tr data-stock-code="${stock['代码'] || ''}" data-stock-name="${stock['名称'] || ''}">
-                                <td><input type="checkbox" class="stock-checkbox row-checkbox" data-stock='${JSON.stringify(stock).replace(/'/g, "&apos;")}'></td>
-                                <td>
-                                    <span class="stock-code">${stock['代码'] || ''}</span>
-                                </td>
-                                <td>
-                                    <span class="stock-name">${stock['名称'] || ''}</span>
+                                <td class="sticky-column checkbox-column"><input type="checkbox" class="stock-checkbox row-checkbox" data-stock='${JSON.stringify(stock).replace(/'/g, "&apos;")}'></td>
+                                <td class="sticky-column">
+                                    <div class="stock-info">
+                                        <div class="stock-code-name">
+                                            <span class="stock-code" onclick="copyToClipboard('${stock['代码'] || ''}', this)">${stock['代码'] || ''}<br>${stock['名称'] || ''}</span>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     <span>${stock['行业'] || ''}</span>
@@ -1057,6 +1057,9 @@ ${newsText}
                                 </td>
                                 <td>
                                     <span class="popularity-change ${stock['上升'] > 0 ? 'positive' : stock['上升'] < 0 ? 'negative' : ''}">${stock['上升'] !== undefined ? (stock['上升'] > 0 ? '+' : '') + stock['上升'] : '-'}</span>
+                                </td>
+                                <td>
+                                    <span>${(stock['权重'] || 0).toFixed(1)}</span>
                                 </td>
                             </tr>
                             `;
@@ -1100,11 +1103,10 @@ ${newsText}
             const rows = document.querySelectorAll('#stockTable tbody tr');
             
             rows.forEach(row => {
-                const stockCode = row.cells[1].textContent.toLowerCase();
-                const stockName = row.cells[2].textContent.toLowerCase();
-                const industry = row.cells[3].textContent.toLowerCase();
+                const stockText = row.cells[1].querySelector('.stock-code').textContent.toLowerCase();
+                const industry = row.cells[2].textContent.toLowerCase();
                 
-                if (stockCode.includes(searchTerm) || stockName.includes(searchTerm) || industry.includes(searchTerm)) {
+                if (stockText.includes(searchTerm) || industry.includes(searchTerm)) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -1118,7 +1120,22 @@ ${newsText}
         document.querySelectorAll('.sortable').forEach(header => {
             header.addEventListener('click', function() {
                 const column = parseInt(this.dataset.column);
-                const direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                
+                // Define default directions for specific columns
+                const getDefaultDirection = (col) => {
+                    if (col === 3 || col === 4 || col === 6 || col === 7) return 'desc'; // 基本面评分, 技术指标, 人气变化, 权重 - best first
+                    if (col === 5) return 'asc'; // 人气排名 - smaller first
+                    return 'asc'; // Default for other columns
+                };
+                
+                let direction;
+                if (currentSort.column === column) {
+                    // Toggle direction if clicking on currently sorted column
+                    direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    // Use default direction for new column
+                    direction = getDefaultDirection(column);
+                }
                 
                 // Remove previous sort indicators
                 document.querySelectorAll('.sortable').forEach(h => {
@@ -1133,36 +1150,49 @@ ${newsText}
             });
         });
         
+        // Sort table by weight descending on page load
+        const weightHeader = document.querySelector('[data-column="7"]');
+        if (weightHeader) {
+            weightHeader.classList.add('sort-desc');
+            sortTable(7, 'desc');
+            currentSort = { column: 7, direction: 'desc' };
+        }
+        
         function sortTable(column, direction) {
             const tbody = document.querySelector('#stockTable tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
             
             rows.sort((a, b) => {
-                let aVal = a.cells[column + 1].textContent.trim(); // +1 because first column is checkbox
-                let bVal = b.cells[column + 1].textContent.trim();
+                let aVal = a.cells[column + 2].textContent.trim(); // +2 because first two columns are sticky (checkbox + stock)
+                let bVal = b.cells[column + 2].textContent.trim();
                 
                 // Handle numeric sorting
-                if (column === 3) { // 市值
+                if (column === 1) { // 市值
                     aVal = parseFloat(aVal.replace('亿', '')) || 0;
                     bVal = parseFloat(bVal.replace('亿', '')) || 0;
-                } else if (column === 4) { // 最新价
+                } else if (column === 2) { // 最新价
                     aVal = parseFloat(aVal) || 0;
                     bVal = parseFloat(bVal) || 0;
-                } else if (column === 5) { // 基本面评分
+                } else if (column === 3) { // 基本面评分
                     aVal = parseFloat(aVal) || 0;
                     bVal = parseFloat(bVal) || 0;
-                } else if (column === 6) { // 技术指标 - sort by daily technical rating
+                } else if (column === 4) { // 技术指标 - sort by daily technical rating
                     // Extract the daily rating from the tech indicators cell
-                    const aDailyIndicator = a.cells[column + 1].querySelector('.tech-indicator:first-child');
-                    const bDailyIndicator = b.cells[column + 1].querySelector('.tech-indicator:first-child');
+                    const aDailyIndicator = a.cells[column + 2].querySelector('.tech-indicator:first-child');
+                    const bDailyIndicator = b.cells[column + 2].querySelector('.tech-indicator:first-child');
                     aVal = aDailyIndicator ? parseFloat(aDailyIndicator.dataset.sortValue) || 0 : 0;
                     bVal = bDailyIndicator ? parseFloat(bDailyIndicator.dataset.sortValue) || 0 : 0;
-                } else if (column === 7) { // 人气排名
+                } else if (column === 5) { // 人气排名
                     aVal = parseInt(aVal) || 999999;
                     bVal = parseInt(bVal) || 999999;
-                } else if (column === 8) { // 人气变化
+                } else if (column === 6) { // 人气变化
                     aVal = parseInt(aVal.replace('+', '')) || 0;
                     bVal = parseInt(bVal.replace('+', '')) || 0;
+                } else if (column === 7) { // 权重 - get from data attribute since column is hidden
+                    const aData = JSON.parse(a.querySelector('.row-checkbox').dataset.stock.replace(/&apos;/g, "'"));
+                    const bData = JSON.parse(b.querySelector('.row-checkbox').dataset.stock.replace(/&apos;/g, "'"));
+                    aVal = parseFloat(aData['权重']) || 0;
+                    bVal = parseFloat(bData['权重']) || 0;
                 } else {
                     // String sorting for other columns
                     aVal = aVal.toLowerCase();
@@ -1253,6 +1283,9 @@ ${newsText}
             const tbody = document.getElementById('selectedStocksBody');
             const count = document.getElementById('selectedCount');
             
+            // Sort selected stocks by weight in descending order
+            selectedStocks.sort((a, b) => (b['权重'] || 0) - (a['权重'] || 0));
+            
             count.textContent = selectedStocks.length;
             
             if (selectedStocks.length > 0) {
@@ -1318,9 +1351,14 @@ ${newsText}
                     };
                     
                     return '<tr data-stock-code="' + (stock['代码'] || '') + '" data-stock-name="' + (stock['名称'] || '') + '">' +
-                        '<td><input type="checkbox" class="stock-checkbox row-checkbox" checked></td>' +
-                        '<td><span class="stock-code">' + (stock['代码'] || '') + '</span></td>' +
-                        '<td><span class="stock-name">' + (stock['名称'] || '') + '</span></td>' +
+                        '<td class="sticky-column checkbox-column"><input type="checkbox" class="stock-checkbox row-checkbox" checked></td>' +
+                        '<td class="sticky-column">' +
+                            '<div class="stock-info">' +
+                                '<div class="stock-code-name">' +
+                                    '<span class="stock-code">' + (stock['代码'] || '') + '<br>' + (stock['名称'] || '') + '</span>' +
+                                '</div>' +
+                            '</div>' +
+                        '</td>' +
                         '<td><span>' + (stock['行业'] || '') + '</span></td>' +
                         '<td><span>' + (stock['最新价'] || '-') + '</span></td>' +
                         '<td><span class="weight-display" id="weight-' + (stock['代码'] || '') + '">-</span></td>' +
@@ -1499,16 +1537,14 @@ ${newsText}
         // Copy stock code functionality
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('stock-code')) {
-                navigator.clipboard.writeText(e.target.textContent).then(() => {
-                    // Simple feedback
-                    const original = e.target.textContent;
-                    e.target.textContent = '已复制!';
-                    setTimeout(() => {
-                        e.target.textContent = original;
-                    }, 1000);
-                });
+                navigator.clipboard.writeText(e.target.textContent);
             }
         });
+        
+        // Copy to clipboard function for stock tags
+        function copyToClipboard(text, element) {
+            navigator.clipboard.writeText(text);
+        }
     </script>
 </body>
 </html>`;

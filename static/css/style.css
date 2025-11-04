@@ -1271,46 +1271,128 @@ section h2 {
     border-radius: 0.75rem;
     border: 1px solid var(--border-color);
     background: var(--card-bg);
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .stock-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
-    table-layout: fixed; /* Fixed table layout for consistent column widths */
+    min-width: 800px; /* Minimum width to ensure readability */
 }
 
-.stock-table th:nth-child(1), .stock-table td:nth-child(1) { width: 3%; } /* Checkbox */
-.stock-table th:nth-child(2), .stock-table td:nth-child(2) { width: 8%; } /* 代码 */
-.stock-table th:nth-child(3), .stock-table td:nth-child(3) { width: 12%; } /* 名称 */
-.stock-table th:nth-child(4), .stock-table td:nth-child(4) { width: 10%; } /* 行业 */
-.stock-table th:nth-child(5), .stock-table td:nth-child(5) { width: 8%; } /* 市值 */
-.stock-table th:nth-child(6), .stock-table td:nth-child(6) { width: 8%; } /* 最新价 */
-.stock-table th:nth-child(7), .stock-table td:nth-child(7) { width: 8%; } /* 基本面评分 */
-.stock-table th:nth-child(8), .stock-table td:nth-child(8) { width: 10%; } /* 技术指标 */
-.stock-table th:nth-child(9), .stock-table td:nth-child(9) { width: 5%; } /* 人气排名 */
-.stock-table th:nth-child(10), .stock-table td:nth-child(10) { width: 5%; } /* 人气变化 */
+/* Sticky first column for mobile responsiveness */
+.sticky-column {
+    position: sticky;
+    background: var(--neutral-white);
+    background-color: var(--neutral-white);
+    z-index: 15;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
 
+.sticky-column.checkbox-column {
+    left: 0;
+    min-width: 50px;
+    max-width: 50px;
+    width: 50px;
+}
+
+.sticky-column:not(.checkbox-column) {
+    left: 50px;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.sticky-column::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+/* Stock info styling in sticky column */
+.stock-info {
+    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(0.5rem, 3vw, 1rem);
+}
+
+.stock-code-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stock-code-name .stock-code {
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: pre-line;
+    font-size: inherit;
+}
+
+.stock-code-name .stock-code:hover {
+    color: var(--accent-color);
+}
+
+/* Responsive table adjustments */
+@media (max-width: 768px) {
+    .stock-table-container {
+        margin: 1rem -1rem 2rem -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+    
+    .sticky-column {
+        min-width: 120px;
+        max-width: 160px;
+    }
+    
+    .stock-info {
+        padding: clamp(0.125rem, 0.75vw, 0.25rem) clamp(0.125rem, 1vw, 0.375rem);
+    }
+}
+
+/* Table headers and cells */
 .stock-table th {
     background: var(--bg-secondary);
     color: var(--text-primary);
     font-weight: 600;
-    padding: 1rem;
-    text-align: left;
+    padding: clamp(0.75rem, 2.5vw, 1rem);
+    text-align: center;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 5;
+}
+
+.stock-table th.sticky-column {
+    z-index: 15; /* Higher than regular sticky */
 }
 
 .stock-table td {
-    padding: 0.75rem 1rem;
+    padding: clamp(0.5rem, 2vw, 0.75rem) clamp(0.5rem, 3vw, 1rem);
     border-bottom: 1px solid var(--border-color);
     color: var(--text-secondary);
+    text-align: center;
+}
+
+.stock-table td.sticky-column {
+    padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.25rem, 1.5vw, 0.75rem);
 }
 
 .stock-table tbody tr:hover {
     background: var(--bg-hover);
+}
+
+.stock-table tbody tr:hover .sticky-column {
+    background: var(--neutral-white);
+    background-color: var(--neutral-white);
 }
 
 .stock-name {
@@ -1379,11 +1461,6 @@ section h2 {
 .rationale-excellent {
     background: var(--primary-teal-bright);
     color: white;
-}
-
-.market-cap {
-    font-weight: 500;
-    color: var(--text-primary);
 }
 
 .tech-indicators {
@@ -1634,14 +1711,9 @@ section h2 {
     opacity: 0.7;
 }
 
-/* Selected stocks table uses dynamic column widths */
-#selectedStocksTable.stock-table {
-    table-layout: auto; /* Override fixed layout for dynamic widths */
-}
-
-#selectedStocksTable.stock-table th,
-#selectedStocksTable.stock-table td {
-    width: auto; /* Let columns size naturally */
-    min-width: 60px; /* Minimum width to prevent too narrow columns */
+/* Hide weight column from display but keep for sorting */
+.stock-table th:nth-child(10),
+.stock-table td:nth-child(10) {
+    display: none;
 }
 
