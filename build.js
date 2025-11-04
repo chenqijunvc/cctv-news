@@ -79,6 +79,7 @@ class NewsArchiveBuilder {
     await this.generateHomePage(newsIndex);
     await this.generateAnalysisPage(newsIndex);
     await this.generateOpportunitiesPage(newsIndex);
+    await this.generateStockTrackingPage();
     await this.generateArchivePages(newsIndex);
     await this.generateAPIEndpoints(newsIndex);
     
@@ -97,6 +98,15 @@ class NewsArchiveBuilder {
       if (await fs.pathExists(srcDir)) {
         await fs.copy(srcDir, destDir);
       }
+    }
+    
+    // Copy stock data files
+    const stockDataDir = './stock_data';
+    const stockDataDestDir = path.join(this.outputDir, 'stock_data');
+    
+    if (await fs.pathExists(stockDataDir)) {
+      await fs.copy(stockDataDir, stockDataDestDir);
+      console.log('📊 Copied stock data files');
     }
   }
 
@@ -535,6 +545,7 @@ ${newsText}
                 <a href="/" class="nav-link active">首页</a>
                 <a href="/analysis.html" class="nav-link">今日分析</a>
                 <a href="/opportunities.html" class="nav-link">投资主题</a>
+                <a href="/stocks.html" class="nav-link">股票追踪</a>
             </nav>
         </div>
     </header>
@@ -547,7 +558,8 @@ ${newsText}
         <p class="hero-subtitle">AI每日提炼可执行的投资主题与个股信号</p>
         <div class="cta-buttons">
           <a href="/analysis.html" class="cta-button primary">今日新闻联播分析</a>
-          <a href="/opportunities.html" class="cta-button secondary">查看相关投资主题</a>
+          <a href="/opportunities.html" class="cta-button primary">查看相关投资主题</a>
+          <a href="/stocks.html" class="cta-button primary">浏览股票筛选</a>
         </div>
       </div>
     </section>
@@ -605,6 +617,7 @@ ${newsText}
                 <a href="/" class="nav-link">首页</a>
                 <a href="/analysis.html" class="nav-link active">今日分析</a>
                 <a href="/opportunities.html" class="nav-link">投资主题</a>
+                <a href="/stocks.html" class="nav-link">股票追踪</a>
             </nav>
         </div>
     </header>
@@ -704,6 +717,7 @@ ${newsText}
                 <a href="/" class="nav-link">首页</a>
                 <a href="/analysis.html" class="nav-link">今日分析</a>
                 <a href="/opportunities.html" class="nav-link active">投资主题</a>
+                <a href="/stocks.html" class="nav-link">股票追踪</a>
             </nav>
         </div>
     </header>
@@ -807,6 +821,699 @@ ${newsText}
 </html>`;
 
     await fs.writeFile(path.join(this.outputDir, 'opportunities.html'), html);
+  }
+
+  // Read latest stock screening data from JSON file
+  async readStockData() {
+    try {
+      const stockDataDir = './stock_data';
+      const files = await fs.readdir(stockDataDir);
+      const jsonFiles = files.filter(f => f.endsWith('.json') && f.includes('cn_stock_screening'));
+      
+      if (jsonFiles.length === 0) {
+        console.log('⚠️ No stock screening JSON files found');
+        return [];
+      }
+      
+      // Sort by timestamp and get the latest
+      jsonFiles.sort((a, b) => b.localeCompare(a));
+      const latestFile = jsonFiles[0];
+      const filePath = path.join(stockDataDir, latestFile);
+      
+      console.log(`📊 Reading stock data from ${latestFile}`);
+      
+      // Read JSON file
+      const stockData = await fs.readJson(filePath);
+      
+      console.log(`📊 Loaded ${stockData.length} stock records`);
+      return stockData;
+      
+    } catch (error) {
+      console.warn('⚠️ Error reading stock data:', error.message);
+      return [];
+    }
+  }
+
+  async generateStockTrackingPage() {
+    console.log('📈 Generating stock tracking page...');
+
+    const stockData = await this.readStockData();
+
+    const html = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票追踪 - Trend Following AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="site-title">Trendfollowing.AI</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link">首页</a>
+                <a href="/analysis.html" class="nav-link">今日分析</a>
+                <a href="/opportunities.html" class="nav-link">投资主题</a>
+                <a href="/stocks.html" class="nav-link active">股票追踪</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="stock-tracking-section">
+            <div class="section-header">
+                <h2>优质股票追踪</h2>
+                <p class="section-subtitle">基于运营和盈利能力的优质股票列表</p>
+            </div>
+            
+            <div class="table-controls">
+                <div>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.875rem;">
+                        共 ${stockData.length} 只股票 | 数据更新时间: ${new Date().toLocaleString('zh-CN')}
+                    </p>
+                </div>
+                <div>
+                    <input type="text" id="stockSearch" class="search-input" placeholder="搜索股票名称或代码..." style="width: 250px;">
+                </div>
+            </div>
+            
+            <!-- Selected Stocks Section -->
+            <div class="selected-stocks-section collapsed" id="selectedStocksSection" style="display: none;">
+                <div class="selected-stocks-header" onclick="toggleSelectedStocks()">
+                    <h3>已选股票 (<span id="selectedCount">0</span>)</h3>
+                    <button class="collapse-toggle-btn" id="collapseToggleBtn">打开</button>
+                </div>
+                <div class="stock-table-container">
+                    <table class="stock-table" id="selectedStocksTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllSelected" class="stock-checkbox"></th>
+                                <th>代码</th>
+                                <th>名称</th>
+                                <th>行业</th>
+                                <th>最新价</th>
+                                <th>权重</th>
+                                <th>投资金额</th>
+                                <th>买入股数</th>
+                                <th>基本面评分</th>
+                                <th>技术指标</th>
+                                <th>人气排名</th>
+                                <th>人气变化</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selectedStocksBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="investment-calculator">
+                    <div class="investment-input-group">
+                        <label for="investmentAmount">请输入投资预算 (元):</label>
+                        <input type="number" id="investmentAmount" class="investment-amount-input" placeholder="100000" min="0" step="1000">
+                        <button id="calculateBtn" class="calculate-btn">计算买入</button>
+                    </div>
+                    <div id="investmentResults" class="investment-results" style="display: none;">
+                        <div class="results-header">投资分配结果</div>
+                        <div id="resultsGrid" class="results-grid">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            ${stockData.length > 0 ? `
+            <div class="stock-table-container">
+                <table class="stock-table" id="stockTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" class="stock-checkbox"></th>
+                            <th class="sortable" data-column="0">代码</th>
+                            <th class="sortable" data-column="1">名称</th>
+                            <th class="sortable" data-column="2">行业</th>
+                            <th class="sortable" data-column="3">市值</th>
+                            <th class="sortable" data-column="4">最新价</th>
+                            <th class="sortable" data-column="5">基本面评分</th>
+                            <th class="sortable" data-column="6">技术指标</th>
+                            <th class="sortable" data-column="7">人气排名</th>
+                            <th class="sortable" data-column="8">人气变化</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${stockData.map(stock => {
+                            const score = stock['基本面评分'] || 0;
+                            const scoreClass = score >= 80 ? 'score-high' : score >= 60 ? 'score-medium' : 'score-low';
+                            
+                            // Parse rationale text and create badges
+                            const rationaleText = stock['投资理由'] || '';
+                            const rationaleBadges = [];
+                            
+                            if (rationaleText.includes('利润率领先')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-leading">利润率领先</span>');
+                            } else if (rationaleText.includes('利润率优秀')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-excellent">利润率优秀</span>');
+                            }
+                            
+                            if (rationaleText.includes('资产周转领先')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-leading">资产周转领先</span>');
+                            } else if (rationaleText.includes('资产周转优秀')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-excellent">资产周转优秀</span>');
+                            }
+                            
+                            if (rationaleText.includes('现金流回报领先')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-leading">现金流回报领先</span>');
+                            } else if (rationaleText.includes('现金流回报优秀')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-excellent">现金流回报优秀</span>');
+                            }
+                            
+                            if (rationaleText.includes('市盈增长率极具吸引力')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-leading">PEG极具吸引力</span>');
+                            } else if (rationaleText.includes('市盈增长率合理')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-excellent">PEG合理</span>');
+                            }
+                            
+                            if (rationaleText.includes('高盈利增长')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-leading">高盈利增长</span>');
+                            } else if (rationaleText.includes('稳健盈利增长')) {
+                                rationaleBadges.push('<span class="rationale-badge rationale-excellent">稳健盈利增长</span>');
+                            }
+                            
+                            // Determine technical indicator colors and labels based on -1 to 1 scale
+                            const getTechClass = (value) => {
+                                if (!value || value === '-') return 'tech-neutral';
+                                const num = parseFloat(value);
+                                if (num < -0.5) return 'tech-strong-sell';
+                                if (num < -0.1) return 'tech-sell';
+                                if (num <= 0.1) return 'tech-neutral';
+                                if (num <= 0.5) return 'tech-buy';
+                                return 'tech-strong-buy';
+                            };
+                            
+                            const getTechLabel = (value) => {
+                                if (!value || value === '-') return '中立';
+                                const num = parseFloat(value);
+                                if (num < -0.5) return '卖出';
+                                if (num < -0.1) return '减持';
+                                if (num <= 0.1) return '中立';
+                                if (num <= 0.5) return '增持';
+                                return '买入';
+                            };
+                            
+                            return `
+                            <tr data-stock-code="${stock['代码'] || ''}" data-stock-name="${stock['名称'] || ''}">
+                                <td><input type="checkbox" class="stock-checkbox row-checkbox" data-stock='${JSON.stringify(stock).replace(/'/g, "&apos;")}'></td>
+                                <td>
+                                    <span class="stock-code">${stock['代码'] || ''}</span>
+                                </td>
+                                <td>
+                                    <span class="stock-name">${stock['名称'] || ''}</span>
+                                </td>
+                                <td>
+                                    <span>${stock['行业'] || ''}</span>
+                                </td>
+                                <td>
+                                    <span class="market-cap">${(stock['市值（亿元）'] || 0).toFixed(1)}亿</span>
+                                </td>
+                                <td>
+                                    <span>${stock['最新价'] || '-'}</span>
+                                </td>
+                                <td>
+                                    <span class="score-badge ${scoreClass}">${score.toFixed(1)}</span>
+                                </td>
+                                <td>
+                                    <div class="tech-indicators">
+                                        <span class="tech-indicator ${getTechClass(stock['技术评级(日)'])}" data-sort-value="${stock['技术评级(日)'] || 0}">日:${getTechLabel(stock['技术评级(日)'])}</span>
+                                        <span class="tech-indicator ${getTechClass(stock['技术评级(周)'])}" data-sort-value="${stock['技术评级(周)'] || 0}">周:${getTechLabel(stock['技术评级(周)'])}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="popularity-rank">${stock['目前排名'] || '-'}</span>
+                                </td>
+                                <td>
+                                    <span class="popularity-change ${stock['上升'] > 0 ? 'positive' : stock['上升'] < 0 ? 'negative' : ''}">${stock['上升'] !== undefined ? (stock['上升'] > 0 ? '+' : '') + stock['上升'] : '-'}</span>
+                                </td>
+                            </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+            ` : `
+            <div class="empty-state">
+                <h4>暂无股票数据</h4>
+                <p>股票筛选数据正在生成中，请稍后刷新页面查看。</p>
+            </div>
+            `}
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>我们的价值</h4>
+                    <p>将新闻联播内容转化为清晰的投资信号，帮助您把握政策驱动的市场机会</p>
+                </div>
+                <div class="footer-section">
+                    <h4>核心功能</h4>
+                    <p>央视新闻联播 · AI分析生成 · 实时更新</p>
+                </div>
+            </div>
+            <p class="disclaimer">数据来源：CCTV 官网 | 本站分析仅供参考，投资需谨慎</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js?v=${Date.now()}"></script>
+    <script>
+        // Selected stocks storage
+        let selectedStocks = [];
+        
+        // Stock table search functionality
+        document.getElementById('stockSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#stockTable tbody tr');
+            
+            rows.forEach(row => {
+                const stockCode = row.cells[1].textContent.toLowerCase();
+                const stockName = row.cells[2].textContent.toLowerCase();
+                const industry = row.cells[3].textContent.toLowerCase();
+                
+                if (stockCode.includes(searchTerm) || stockName.includes(searchTerm) || industry.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Table sorting functionality
+        let currentSort = { column: -1, direction: 'asc' };
+        
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const column = parseInt(this.dataset.column);
+                const direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                
+                // Remove previous sort indicators
+                document.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                
+                // Add new sort indicator
+                this.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                
+                sortTable(column, direction);
+                currentSort = { column, direction };
+            });
+        });
+        
+        function sortTable(column, direction) {
+            const tbody = document.querySelector('#stockTable tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                let aVal = a.cells[column + 1].textContent.trim(); // +1 because first column is checkbox
+                let bVal = b.cells[column + 1].textContent.trim();
+                
+                // Handle numeric sorting
+                if (column === 3) { // 市值
+                    aVal = parseFloat(aVal.replace('亿', '')) || 0;
+                    bVal = parseFloat(bVal.replace('亿', '')) || 0;
+                } else if (column === 4) { // 最新价
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                } else if (column === 5) { // 基本面评分
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                } else if (column === 6) { // 技术指标 - sort by daily technical rating
+                    // Extract the daily rating from the tech indicators cell
+                    const aDailyIndicator = a.cells[column + 1].querySelector('.tech-indicator:first-child');
+                    const bDailyIndicator = b.cells[column + 1].querySelector('.tech-indicator:first-child');
+                    aVal = aDailyIndicator ? parseFloat(aDailyIndicator.dataset.sortValue) || 0 : 0;
+                    bVal = bDailyIndicator ? parseFloat(bDailyIndicator.dataset.sortValue) || 0 : 0;
+                } else if (column === 7) { // 人气排名
+                    aVal = parseInt(aVal) || 999999;
+                    bVal = parseInt(bVal) || 999999;
+                } else if (column === 8) { // 人气变化
+                    aVal = parseInt(aVal.replace('+', '')) || 0;
+                    bVal = parseInt(bVal.replace('+', '')) || 0;
+                } else {
+                    // String sorting for other columns
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+                } else {
+                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+                }
+            });
+            
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // Checkbox functionality
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('#stockTable .row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                updateSelectedStocks(checkbox);
+            });
+        });
+        
+        document.getElementById('selectAllSelected').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('#selectedStocksTable .row-checkbox');
+            if (this.checked) {
+                checkboxes.forEach(checkbox => checkbox.checked = true);
+            } else {
+                // Collect all stock codes first
+                const stockCodes = Array.from(checkboxes).map(checkbox => checkbox.closest('tr').dataset.stockCode);
+                // Remove all at once
+                selectedStocks = selectedStocks.filter(s => !stockCodes.includes(s['代码']));
+                // Update main table checkboxes
+                stockCodes.forEach(code => {
+                    const mainCheckbox = document.querySelector('#stockTable tr[data-stock-code="' + code + '"] .row-checkbox');
+                    if (mainCheckbox) mainCheckbox.checked = false;
+                });
+                // Set all checkboxes to unchecked
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+            }
+            updateSelectedStocksDisplay();
+            updateSelectAllState();
+        });
+        
+        // Handle individual row checkboxes
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox')) {
+                updateSelectedStocks(e.target);
+            }
+        });
+        
+        function updateSelectedStocks(checkbox) {
+            const stockData = JSON.parse(checkbox.dataset.stock.replace(/&apos;/g, "'"));
+            
+            if (checkbox.checked) {
+                // Add to selected
+                if (!selectedStocks.find(s => s['代码'] === stockData['代码'])) {
+                    selectedStocks.push(stockData);
+                }
+            } else {
+                // Remove from selected
+                selectedStocks = selectedStocks.filter(s => s['代码'] !== stockData['代码']);
+            }
+            
+            updateSelectedStocksDisplay();
+            updateSelectAllState();
+        }
+        
+        function removeFromSelected(checkbox) {
+            const stockCode = checkbox.closest('tr').dataset.stockCode;
+            selectedStocks = selectedStocks.filter(s => s['代码'] !== stockCode);
+            
+            // Also uncheck in main table
+            const mainCheckbox = document.querySelector('#stockTable tr[data-stock-code="' + stockCode + '"] .row-checkbox');
+            if (mainCheckbox) {
+                mainCheckbox.checked = false;
+            }
+            
+            updateSelectedStocksDisplay();
+            updateSelectAllState();
+        }
+        
+        function updateSelectedStocksDisplay() {
+            const section = document.getElementById('selectedStocksSection');
+            const tbody = document.getElementById('selectedStocksBody');
+            const count = document.getElementById('selectedCount');
+            
+            count.textContent = selectedStocks.length;
+            
+            if (selectedStocks.length > 0) {
+                section.style.display = 'block';
+                
+                tbody.innerHTML = selectedStocks.map(stock => {
+                    const score = stock['基本面评分'] || 0;
+                    const scoreClass = score >= 80 ? 'score-high' : score >= 60 ? 'score-medium' : 'score-low';
+                    
+                    // Parse rationale text and create badges
+                    const rationaleText = stock['投资理由'] || '';
+                    const rationaleBadges = [];
+                    
+                    if (rationaleText.includes('利润率领先')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-leading">利润率领先</span>');
+                    } else if (rationaleText.includes('利润率优秀')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-excellent">利润率优秀</span>');
+                    }
+                    
+                    if (rationaleText.includes('资产周转领先')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-leading">资产周转领先</span>');
+                    } else if (rationaleText.includes('资产周转优秀')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-excellent">资产周转优秀</span>');
+                    }
+                    
+                    if (rationaleText.includes('现金流回报领先')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-leading">现金流回报领先</span>');
+                    } else if (rationaleText.includes('现金流回报优秀')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-excellent">现金流回报优秀</span>');
+                    }
+                    
+                    if (rationaleText.includes('市盈增长率极具吸引力')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-leading">PEG极具吸引力</span>');
+                    } else if (rationaleText.includes('市盈增长率合理')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-excellent">PEG合理</span>');
+                    }
+                    
+                    if (rationaleText.includes('高盈利增长')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-leading">高盈利增长</span>');
+                    } else if (rationaleText.includes('稳健盈利增长')) {
+                        rationaleBadges.push('<span class="rationale-badge rationale-excellent">稳健盈利增长</span>');
+                    }
+                    
+                    // Determine technical indicator colors and labels based on -1 to 1 scale
+                    const getTechClass = (value) => {
+                        if (!value || value === '-') return 'tech-neutral';
+                        const num = parseFloat(value);
+                        if (num < -0.5) return 'tech-strong-sell';
+                        if (num < -0.1) return 'tech-sell';
+                        if (num <= 0.1) return 'tech-neutral';
+                        if (num <= 0.5) return 'tech-buy';
+                        return 'tech-strong-buy';
+                    };
+                    
+                    const getTechLabel = (value) => {
+                        if (!value || value === '-') return '中立';
+                        const num = parseFloat(value);
+                        if (num < -0.5) return '卖出';
+                        if (num < -0.1) return '减持';
+                        if (num <= 0.1) return '中立';
+                        if (num <= 0.5) return '增持';
+                        return '买入';
+                    };
+                    
+                    return '<tr data-stock-code="' + (stock['代码'] || '') + '" data-stock-name="' + (stock['名称'] || '') + '">' +
+                        '<td><input type="checkbox" class="stock-checkbox row-checkbox" checked></td>' +
+                        '<td><span class="stock-code">' + (stock['代码'] || '') + '</span></td>' +
+                        '<td><span class="stock-name">' + (stock['名称'] || '') + '</span></td>' +
+                        '<td><span>' + (stock['行业'] || '') + '</span></td>' +
+                        '<td><span>' + (stock['最新价'] || '-') + '</span></td>' +
+                        '<td><span class="weight-display" id="weight-' + (stock['代码'] || '') + '">-</span></td>' +
+                        '<td><span class="amount-display" id="amount-' + (stock['代码'] || '') + '">-</span></td>' +
+                        '<td><span class="shares-display" id="shares-' + (stock['代码'] || '') + '">-</span></td>' +
+                        '<td><span class="score-badge ' + scoreClass + '">' + score.toFixed(1) + '</span></td>' +
+                        '<td>' +
+                            '<div class="tech-indicators">' +
+                                '<span class="tech-indicator ' + getTechClass(stock['技术评级(日)']) + '" data-sort-value="' + (stock['技术评级(日)'] || 0) + '">日:' + getTechLabel(stock['技术评级(日)']) + '</span>' +
+                                '<span class="tech-indicator ' + getTechClass(stock['技术评级(周)']) + '" data-sort-value="' + (stock['技术评级(周)'] || 0) + '">周:' + getTechLabel(stock['技术评级(周)']) + '</span>' +
+                            '</div>' +
+                        '</td>' +
+                        '<td><span class="popularity-rank">' + (stock['目前排名'] || '-') + '</span></td>' +
+                        '<td><span class="popularity-change ' + (stock['上升'] > 0 ? 'positive' : stock['上升'] < 0 ? 'negative' : '') + '">' + (stock['上升'] !== undefined ? (stock['上升'] > 0 ? '+' : '') + stock['上升'] : '-') + '</span></td>' +
+                    '</tr>';
+                }).join('');
+                
+                // Clear previous calculation results
+                clearInvestmentResults();
+            } else {
+                section.style.display = 'none';
+            }
+        }
+        
+        function clearInvestmentResults() {
+            // Clear individual stock calculation displays
+            selectedStocks.forEach(stock => {
+                const code = stock['代码'];
+                const weightEl = document.getElementById('weight-' + code);
+                const amountEl = document.getElementById('amount-' + code);
+                const sharesEl = document.getElementById('shares-' + code);
+                
+                if (weightEl) weightEl.textContent = '-';
+                if (amountEl) amountEl.textContent = '-';
+                if (sharesEl) sharesEl.textContent = '-';
+            });
+            
+            // Hide results summary
+            document.getElementById('investmentResults').style.display = 'none';
+        }
+        
+        function toggleSelectedStocks() {
+            const section = document.getElementById('selectedStocksSection');
+            const toggleBtn = document.getElementById('collapseToggleBtn');
+            
+            section.classList.toggle('collapsed');
+            
+            // Update button text based on collapsed state
+            if (section.classList.contains('collapsed')) {
+                toggleBtn.textContent = '打开';
+            } else {
+                toggleBtn.textContent = '隐藏';
+            }
+        }
+        
+        // Investment calculation functionality
+        document.getElementById('calculateBtn').addEventListener('click', calculateInvestment);
+        document.getElementById('investmentAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateInvestment();
+            }
+        });
+        
+        function calculateInvestment() {
+            const totalAmount = parseFloat(document.getElementById('investmentAmount').value);
+            
+            if (!totalAmount || totalAmount <= 0) {
+                alert('请输入有效的投资金额');
+                return;
+            }
+            
+            if (selectedStocks.length === 0) {
+                alert('请先选择股票');
+                return;
+            }
+            
+            // Step 1: Calculate total weight of selected stocks
+            const totalWeight = selectedStocks.reduce((sum, stock) => sum + (stock['权重'] || 0), 0);
+            
+            if (totalWeight === 0) {
+                alert('所选股票没有权重数据');
+                return;
+            }
+            
+            // Step 2: Calculate rescaled weights (to 100%)
+            const rescaledStocks = selectedStocks.map(stock => ({
+                ...stock,
+                rescaledWeight: (stock['权重'] || 0) / totalWeight * 100
+            }));
+            
+            // Step 3: Calculate investment amount and shares for each stock
+            const results = rescaledStocks.map(stock => {
+                const price = parseFloat(stock['最新价']) || 0;
+                if (price <= 0) return { ...stock, investmentAmount: 0, shares: 0, finalWeight: 0 };
+                
+                const investmentAmount = (stock.rescaledWeight / 100) * totalAmount;
+                const rawShares = investmentAmount / price;
+                
+                // Round down to nearest 100 shares
+                const shares = Math.floor(rawShares / 100) * 100;
+                
+                // Recalculate final investment amount and weight based on actual shares
+                const actualInvestment = shares * price;
+                const finalWeight = (actualInvestment / totalAmount) * 100;
+                
+                return {
+                    ...stock,
+                    investmentAmount: actualInvestment,
+                    shares: shares,
+                    finalWeight: finalWeight
+                };
+            });
+            
+            // Step 4: Update display
+            results.forEach(stock => {
+                const code = stock['代码'];
+                document.getElementById('weight-' + code).textContent = stock.rescaledWeight.toFixed(2) + '%';
+                document.getElementById('amount-' + code).textContent = stock.investmentAmount.toLocaleString('zh-CN', { maximumFractionDigits: 0 }) + '元';
+                document.getElementById('shares-' + code).textContent = stock.shares.toLocaleString('zh-CN') + '股';
+            });
+            
+            // Step 5: Show summary results
+            updateInvestmentResults(results, totalAmount);
+        }
+        
+        function updateInvestmentResults(results, totalAmount) {
+            const resultsContainer = document.getElementById('investmentResults');
+            const resultsGrid = document.getElementById('resultsGrid');
+            
+            const totalInvested = results.reduce((sum, stock) => sum + stock.investmentAmount, 0);
+            const totalShares = results.reduce((sum, stock) => sum + stock.shares, 0);
+            const remainingAmount = totalAmount - totalInvested;
+            
+            resultsGrid.innerHTML = 
+                '<div class="result-item">' +
+                    '<div class="result-label">投资预算</div>' +
+                    '<div class="result-value">' + totalAmount.toLocaleString('zh-CN') + '元</div>' +
+                '</div>' +
+                '<div class="result-item">' +
+                    '<div class="result-label">实际投资金额</div>' +
+                    '<div class="result-value">' + totalInvested.toLocaleString('zh-CN') + '元</div>' +
+                '</div>' +
+                '<div class="result-item">' +
+                    '<div class="result-label">剩余金额</div>' +
+                    '<div class="result-value">' + remainingAmount.toLocaleString('zh-CN') + '元</div>' +
+                '</div>' +
+                '<div class="result-item">' +
+                    '<div class="result-label">总买入股数</div>' +
+                    '<div class="result-value">' + totalShares.toLocaleString('zh-CN') + '股</div>' +
+                '</div>' +
+                '<div class="result-item">' +
+                    '<div class="result-label">投资股票数</div>' +
+                    '<div class="result-value">' + results.length + '只</div>' +
+                '</div>';
+            
+            resultsContainer.style.display = 'block';
+        }
+        
+        function updateSelectAllState() {
+            const mainCheckboxes = document.querySelectorAll('#stockTable .row-checkbox');
+            const selectedCheckboxes = document.querySelectorAll('#selectedStocksTable .row-checkbox');
+            const selectAll = document.getElementById('selectAll');
+            const selectAllSelected = document.getElementById('selectAllSelected');
+            
+            // Update main table select all
+            const mainChecked = document.querySelectorAll('#stockTable .row-checkbox:checked').length;
+            selectAll.checked = mainChecked === mainCheckboxes.length && mainCheckboxes.length > 0;
+            selectAll.indeterminate = mainChecked > 0 && mainChecked < mainCheckboxes.length;
+            
+            // Update selected table select all
+            const selectedChecked = document.querySelectorAll('#selectedStocksTable .row-checkbox:checked').length;
+            selectAllSelected.checked = selectedChecked === selectedCheckboxes.length && selectedCheckboxes.length > 0;
+            selectAllSelected.indeterminate = selectedChecked > 0 && selectedChecked < selectedCheckboxes.length;
+        }
+        
+        // Copy stock code functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('stock-code')) {
+                navigator.clipboard.writeText(e.target.textContent).then(() => {
+                    // Simple feedback
+                    const original = e.target.textContent;
+                    e.target.textContent = '已复制!';
+                    setTimeout(() => {
+                        e.target.textContent = original;
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>`;
+
+    await fs.writeFile(path.join(this.outputDir, 'stocks.html'), html);
   }
 
   async generateArchivePages(index) {

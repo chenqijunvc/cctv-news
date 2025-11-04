@@ -14,7 +14,7 @@ html {
 /* Global Color Palette: The Confident Trend Follower */
 :root {
     /* Primary Deep Teal - The Confident Trend Follower */
-    --primary-teal-dark: #0F4C5C;    /* Softer deep teal for headers */
+    --primary-teal-dark: #0A3A46;    /* Dark teal for headers */
     --primary-teal: #0F4C5C;         /* Primary brand teal */
     --primary-teal-medium: #1A6F7F;  /* Medium teal */
     --primary-teal-light: #26A5B5;   /* Bright teal accents */
@@ -523,11 +523,11 @@ section h2 {
 .cta-button.primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(38, 165, 181, 0.4);
-    background: linear-gradient(135deg, var(--primary-teal-medium), var(--primary-teal));
+    background: linear-gradient(135deg, var(--primary-teal-dark), var(--primary-teal));
 }
 
 .cta-button.secondary {
-    background: linear-gradient(135deg, var(--complementary-orange), var(--complementary-orange-medium));
+    background: linear-gradient(135deg, var(--complementary-orange), var(--complementary-orange-light));
     color: white;
 }
 
@@ -1262,5 +1262,386 @@ section h2 {
     gap: 1.5rem;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Stock Tracking Page Styles */
+.stock-table-container {
+    overflow-x: auto;
+    margin: 2rem 0;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    table-layout: fixed; /* Fixed table layout for consistent column widths */
+}
+
+.stock-table th:nth-child(1), .stock-table td:nth-child(1) { width: 3%; } /* Checkbox */
+.stock-table th:nth-child(2), .stock-table td:nth-child(2) { width: 8%; } /* 代码 */
+.stock-table th:nth-child(3), .stock-table td:nth-child(3) { width: 12%; } /* 名称 */
+.stock-table th:nth-child(4), .stock-table td:nth-child(4) { width: 10%; } /* 行业 */
+.stock-table th:nth-child(5), .stock-table td:nth-child(5) { width: 8%; } /* 市值 */
+.stock-table th:nth-child(6), .stock-table td:nth-child(6) { width: 8%; } /* 最新价 */
+.stock-table th:nth-child(7), .stock-table td:nth-child(7) { width: 8%; } /* 基本面评分 */
+.stock-table th:nth-child(8), .stock-table td:nth-child(8) { width: 10%; } /* 技术指标 */
+.stock-table th:nth-child(9), .stock-table td:nth-child(9) { width: 5%; } /* 人气排名 */
+.stock-table th:nth-child(10), .stock-table td:nth-child(10) { width: 5%; } /* 人气变化 */
+
+.stock-table th {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.stock-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.stock-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.stock-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stock-code {
+    background: var(--accent-color);
+    color: #1f2937;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.score-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.score-high {
+    background: var(--primary-teal-light);
+    color: white;
+}
+
+.score-medium {
+    background: var(--primary-teal-bright);
+    color: white;
+}
+
+.score-low {
+    background: var(--error-red);
+    color: white;
+}
+
+.rationale-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    max-width: 300px;
+}
+
+.rationale-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.rationale-leading {
+    background: var(--primary-teal-light);
+    color: white;
+}
+
+.rationale-excellent {
+    background: var(--primary-teal-bright);
+    color: white;
+}
+
+.market-cap {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.tech-indicators {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.tech-indicator {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tech-strong-sell {
+    /* Indicates a BIG expected loss (GREEN in China) */
+    background: #059669; 
+    color: white;
+}
+
+.tech-sell {
+    /* Indicates an expected loss (GREEN in China) */
+    background: #34D399;
+    color: white;
+}
+
+.tech-neutral {
+    background: #9CA3AF;
+    color: white;
+}
+
+.tech-buy {
+    /* Indicates an expected gain (RED in China) */
+    background: #F87171;
+    color: white;
+}
+
+.tech-strong-buy {
+    /* Indicates a BIG expected gain (RED in China) */
+    background: #DC2626;
+    color: white;
+}
+
+.popularity-rank {
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.popularity-change {
+    font-weight: 500;
+    text-align: center;
+}
+
+.popularity-change.positive {
+    color: var(--primary-teal);
+}
+
+.popularity-change.negative {
+    color: var(--complementary-orange);
+}
+
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.search-input {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.selected-stocks-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    width: 100%;
+}
+
+.selected-stocks-section.collapsed {
+    padding: 0.75rem 1.5rem;
+}
+
+.selected-stocks-section.collapsed .stock-table-container {
+    display: none;
+}
+
+.selected-stocks-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    gap: 1rem;
+}
+
+.selected-stocks-header:hover {
+    opacity: 0.8;
+}
+
+.collapse-toggle-btn {
+    padding: 0.25rem 0.75rem;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.collapse-toggle-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+}
+
+.selected-stocks-section.collapsed .investment-calculator {
+    display: none;
+}
+
+.investment-calculator {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.investment-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.investment-input-group label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.investment-amount-input {
+    padding: 0.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.25rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    width: 120px;
+}
+
+.investment-amount-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.calculate-btn {
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, var(--primary-teal), var(--primary-teal-light));
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(38, 165, 181, 0.3);
+}
+
+.calculate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(38, 165, 181, 0.4);
+    background: linear-gradient(135deg, var(--primary-teal-medium), var(--primary-teal));
+}
+
+.investment-results {
+    margin-top: 1rem;
+}
+
+.results-header {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.result-item {
+    background: var(--card-bg);
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border-color);
+}
+
+.result-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.result-value {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.stock-checkbox {
+    margin-right: 0.5rem;
+}
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable:hover {
+    background: var(--bg-hover);
+}
+
+.sortable.sort-asc::after {
+    content: ' ↑';
+    opacity: 0.7;
+}
+
+/* Selected stocks table uses dynamic column widths */
+#selectedStocksTable.stock-table {
+    table-layout: auto; /* Override fixed layout for dynamic widths */
+}
+
+#selectedStocksTable.stock-table th,
+#selectedStocksTable.stock-table td {
+    width: auto; /* Let columns size naturally */
+    min-width: 60px; /* Minimum width to prevent too narrow columns */
 }
 
