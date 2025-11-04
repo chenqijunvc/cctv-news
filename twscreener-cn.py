@@ -6,6 +6,7 @@ import akshare as ak
 import time
 import glob
 import json
+import os
 
 
 def focused_fcf_turnover_screener():
@@ -306,25 +307,35 @@ def focused_fcf_turnover_screener():
 
 def load_comment_data():
     """加载东方财富网千股千评数据"""
-    pattern = r"stock_data/stock_comment_em_*.parquet"
-    files = glob.glob(pattern)
-
-    if files:
-        # Sort files by timestamp in filename
-        files.sort(key=lambda x: x.split('_')[-1].replace('.parquet', ''))
-        latest_file = files[-1]
-        stock_comment_em_df = pd.read_parquet(latest_file)
-        print(f"Loaded latest comment data from {latest_file}")
+    from datetime import datetime
+    
+    # Get today's date in YYYYMMDD format
+    today_date = datetime.now().strftime("%Y%m%d")
+    today_file_pattern = f"stock_data/stock_comment_em_{today_date}_*.parquet"
+    
+    # Check if today's comment data exists
+    today_files = glob.glob(today_file_pattern)
+    
+    if today_files:
+        # Use today's data - sort by timestamp and get the latest
+        def extract_timestamp(filename):
+            basename = os.path.basename(filename)
+            return basename.replace('stock_comment_em_', '').replace('.parquet', '')
+        
+        today_files.sort(key=extract_timestamp)
+        latest_today_file = today_files[-1]
+        stock_comment_em_df = pd.read_parquet(latest_today_file)
+        print(f"Loaded today's comment data from {latest_today_file}")
     else:
-        print("No existing comment data files found. Fetching new data...")
+        print("Today's comment data not found. Fetching new data...")
         # 获取东方财富网-千股千评
         stock_comment_em_df = ak.stock_comment_em()
-
+        
         # 保存千股千评数据到本地parquet文件，注明时间戳
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         stock_comment_em_df = stock_comment_em_df.sort_values(by='目前排名')
-        stock_comment_em_df.to_parquet(f"stock_comment_em_{timestamp}.parquet", index=False)
-        print(f"Saved new comment data to stock_comment_em_{timestamp}.parquet")
+        stock_comment_em_df.to_parquet(f"stock_data/stock_comment_em_{timestamp}.parquet", index=False)
+        print(f"Saved new comment data to stock_data/stock_comment_em_{timestamp}.parquet")
 
     return stock_comment_em_df
 
