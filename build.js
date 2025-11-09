@@ -924,6 +924,8 @@ ${newsText}
                                 <th>买入股数</th>
                                 <th>基本面评分</th>
                                 <th>技术指标</th>
+                                <th>均线指标</th>
+                                <th>震荡指标</th>
                                 <th>人气排名</th>
                                 <th>人气变化</th>
                             </tr>
@@ -959,9 +961,11 @@ ${newsText}
                             <th class="sortable" data-column="2">收盘价</th>
                             <th class="sortable" data-column="3">基本面评分</th>
                             <th class="sortable" data-column="4">技术指标</th>
-                            <th class="sortable" data-column="5">人气排名</th>
-                            <th class="sortable" data-column="6">人气变化</th>
-                            <th class="sortable" data-column="7">权重</th>
+                            <th class="sortable" data-column="5">均线指标</th>
+                            <th class="sortable" data-column="6">震荡指标</th>
+                            <th class="sortable" data-column="7">人气排名</th>
+                            <th class="sortable" data-column="8">人气变化</th>
+                            <th class="sortable" data-column="9">权重</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1053,6 +1057,18 @@ ${newsText}
                                     </div>
                                 </td>
                                 <td>
+                                    <div class="tech-indicators">
+                                        <span class="tech-indicator ${getTechClass(stock['均线评级(日)'])}" data-sort-value="${stock['均线评级(日)'] || 0}">日:${getTechLabel(stock['均线评级(日)'])}</span>
+                                        <span class="tech-indicator ${getTechClass(stock['均线评级(周)'])}" data-sort-value="${stock['均线评级(周)'] || 0}">周:${getTechLabel(stock['均线评级(周)'])}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tech-indicators">
+                                        <span class="tech-indicator ${getTechClass(stock['震荡指标评级(日)'])}" data-sort-value="${stock['震荡指标评级(日)'] || 0}">日:${getTechLabel(stock['震荡指标评级(日)'])}</span>
+                                        <span class="tech-indicator ${getTechClass(stock['震荡指标评级(周)'])}" data-sort-value="${stock['震荡指标评级(周)'] || 0}">周:${getTechLabel(stock['震荡指标评级(周)'])}</span>
+                                    </div>
+                                </td>
+                                <td>
                                     <span class="popularity-rank">${stock['目前排名'] || '-'}</span>
                                 </td>
                                 <td>
@@ -1123,8 +1139,8 @@ ${newsText}
                 
                 // Define default directions for specific columns
                 const getDefaultDirection = (col) => {
-                    if (col === 3 || col === 4 || col === 6 || col === 7) return 'desc'; // 基本面评分, 技术指标, 人气变化, 权重 - best first
-                    if (col === 5) return 'asc'; // 人气排名 - smaller first
+                    if (col === 3 || col === 4 || col === 5 || col === 6 || col === 8) return 'desc'; // 基本面评分, 技术指标, 均线指标, 震荡指标, 人气变化 - best first
+                    if (col === 7) return 'asc'; // 人气排名 - smaller first
                     return 'asc'; // Default for other columns
                 };
                 
@@ -1151,11 +1167,11 @@ ${newsText}
         });
         
         // Sort table by weight descending on page load
-        const weightHeader = document.querySelector('[data-column="7"]');
+        const weightHeader = document.querySelector('[data-column="9"]');
         if (weightHeader) {
             weightHeader.classList.add('sort-desc');
-            sortTable(7, 'desc');
-            currentSort = { column: 7, direction: 'desc' };
+            sortTable(9, 'desc');
+            currentSort = { column: 9, direction: 'desc' };
         }
         
         function sortTable(column, direction) {
@@ -1182,13 +1198,25 @@ ${newsText}
                     const bDailyIndicator = b.cells[column + 2].querySelector('.tech-indicator:first-child');
                     aVal = aDailyIndicator ? parseFloat(aDailyIndicator.dataset.sortValue) || 0 : 0;
                     bVal = bDailyIndicator ? parseFloat(bDailyIndicator.dataset.sortValue) || 0 : 0;
-                } else if (column === 5) { // 人气排名
+                } else if (column === 5) { // 均线指标 - sort by daily moving average rating
+                    // Extract the daily rating from the moving average indicators cell
+                    const aDailyIndicator = a.cells[column + 2].querySelector('.tech-indicator:first-child');
+                    const bDailyIndicator = b.cells[column + 2].querySelector('.tech-indicator:first-child');
+                    aVal = aDailyIndicator ? parseFloat(aDailyIndicator.dataset.sortValue) || 0 : 0;
+                    bVal = bDailyIndicator ? parseFloat(bDailyIndicator.dataset.sortValue) || 0 : 0;
+                } else if (column === 6) { // 震荡指标 - sort by daily oscillation rating
+                    // Extract the daily rating from the oscillation indicators cell
+                    const aDailyIndicator = a.cells[column + 2].querySelector('.tech-indicator:first-child');
+                    const bDailyIndicator = b.cells[column + 2].querySelector('.tech-indicator:first-child');
+                    aVal = aDailyIndicator ? parseFloat(aDailyIndicator.dataset.sortValue) || 0 : 0;
+                    bVal = bDailyIndicator ? parseFloat(bDailyIndicator.dataset.sortValue) || 0 : 0;
+                } else if (column === 7) { // 人气排名
                     aVal = parseInt(aVal) || 999999;
                     bVal = parseInt(bVal) || 999999;
-                } else if (column === 6) { // 人气变化
+                } else if (column === 8) { // 人气变化
                     aVal = parseInt(aVal.replace('+', '')) || 0;
                     bVal = parseInt(bVal.replace('+', '')) || 0;
-                } else if (column === 7) { // 权重 - get from data attribute since column is hidden
+                } else if (column === 9) { // 权重 - get from data attribute since column is hidden
                     const aData = JSON.parse(a.querySelector('.row-checkbox').dataset.stock.replace(/&apos;/g, "'"));
                     const bData = JSON.parse(b.querySelector('.row-checkbox').dataset.stock.replace(/&apos;/g, "'"));
                     aVal = parseFloat(aData['权重']) || 0;
@@ -1369,6 +1397,18 @@ ${newsText}
                             '<div class="tech-indicators">' +
                                 '<span class="tech-indicator ' + getTechClass(stock['技术评级(日)']) + '" data-sort-value="' + (stock['技术评级(日)'] || 0) + '">日:' + getTechLabel(stock['技术评级(日)']) + '</span>' +
                                 '<span class="tech-indicator ' + getTechClass(stock['技术评级(周)']) + '" data-sort-value="' + (stock['技术评级(周)'] || 0) + '">周:' + getTechLabel(stock['技术评级(周)']) + '</span>' +
+                            '</div>' +
+                        '</td>' +
+                        '<td>' +
+                            '<div class="tech-indicators">' +
+                                '<span class="tech-indicator ' + getTechClass(stock['均线评级(日)']) + '" data-sort-value="' + (stock['均线评级(日)'] || 0) + '">日:' + getTechLabel(stock['均线评级(日)']) + '</span>' +
+                                '<span class="tech-indicator ' + getTechClass(stock['均线评级(周)']) + '" data-sort-value="' + (stock['均线评级(周)'] || 0) + '">周:' + getTechLabel(stock['均线评级(周)']) + '</span>' +
+                            '</div>' +
+                        '</td>' +
+                        '<td>' +
+                            '<div class="tech-indicators">' +
+                                '<span class="tech-indicator ' + getTechClass(stock['震荡指标评级(日)']) + '" data-sort-value="' + (stock['震荡指标评级(日)'] || 0) + '">日:' + getTechLabel(stock['震荡指标评级(日)']) + '</span>' +
+                                '<span class="tech-indicator ' + getTechClass(stock['震荡指标评级(周)']) + '" data-sort-value="' + (stock['震荡指标评级(周)'] || 0) + '">周:' + getTechLabel(stock['震荡指标评级(周)']) + '</span>' +
                             '</div>' +
                         '</td>' +
                         '<td><span class="popularity-rank">' + (stock['目前排名'] || '-') + '</span></td>' +
