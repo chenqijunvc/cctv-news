@@ -965,7 +965,7 @@ ${newsText}
                             <th class="sortable" data-column="6">震荡指标</th>
                             <th class="sortable" data-column="7">人气排名</th>
                             <th class="sortable" data-column="8">人气变化</th>
-                            <th class="sortable" data-column="9">权重</th>
+                            <th class="sortable" data-column="9">人气排名</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1051,19 +1051,19 @@ ${newsText}
                                     <span class="score-badge ${scoreClass}">${score.toFixed(1)}</span>
                                 </td>
                                 <td>
-                                    <div class="tech-indicators">
+                                    <div class="tech-indicators" style="justify-content: center;">
                                         <span class="tech-indicator ${getTechClass(stock['技术评级(日)'])}" data-sort-value="${stock['技术评级(日)'] || 0}">日:${getTechLabel(stock['技术评级(日)'])}</span>
                                         <span class="tech-indicator ${getTechClass(stock['技术评级(周)'])}" data-sort-value="${stock['技术评级(周)'] || 0}">周:${getTechLabel(stock['技术评级(周)'])}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="tech-indicators">
+                                    <div class="tech-indicators" style="justify-content: center;">
                                         <span class="tech-indicator ${getTechClass(stock['均线评级(日)'])}" data-sort-value="${stock['均线评级(日)'] || 0}">日:${getTechLabel(stock['均线评级(日)'])}</span>
                                         <span class="tech-indicator ${getTechClass(stock['均线评级(周)'])}" data-sort-value="${stock['均线评级(周)'] || 0}">周:${getTechLabel(stock['均线评级(周)'])}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="tech-indicators">
+                                    <div class="tech-indicators" style="justify-content: center;">
                                         <span class="tech-indicator ${getTechClass(stock['震荡指标评级(日)'])}" data-sort-value="${stock['震荡指标评级(日)'] || 0}">日:${getTechLabel(stock['震荡指标评级(日)'])}</span>
                                         <span class="tech-indicator ${getTechClass(stock['震荡指标评级(周)'])}" data-sort-value="${stock['震荡指标评级(周)'] || 0}">周:${getTechLabel(stock['震荡指标评级(周)'])}</span>
                                     </div>
@@ -1075,7 +1075,7 @@ ${newsText}
                                     <span class="popularity-change ${stock['上升'] > 0 ? 'positive' : stock['上升'] < 0 ? 'negative' : ''}">${stock['上升'] !== undefined ? (stock['上升'] > 0 ? '+' : '') + stock['上升'] : '-'}</span>
                                 </td>
                                 <td>
-                                    <span>${(stock['权重'] || 0).toFixed(1)}</span>
+                                    <span class="popularity-rank">${stock['目前排名'] || '-'}</span>
                                 </td>
                             </tr>
                             `;
