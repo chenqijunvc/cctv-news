@@ -1914,6 +1914,8 @@ ${newsText}
     }
     const embeddedScript = scriptMatch[1]
       // Remap dark-theme heatmap colours to light-theme equivalents
+      .replace("groupLevel:  META.group_levels[1],", "groupLevel:  META.group_levels[2],")
+      .replace("weightMode:  'simple',", "weightMode:  'aum_w',")
       .replace("'#1e2535'", "'#f3f4f6'")   // neutral mid  → light gray
       .replace("'#1a3d2b'", "'#d1fae5'")   // positive bg  → light green
       .replace("'#3d1a1a'", "'#fee2e2'");   // negative bg  → light red
@@ -2104,8 +2106,8 @@ ${newsText}
             <div class="ctrl-group">
                 <label>加权</label>
                 <div class="toggle-btn" id="weightToggle">
-                    <button data-w="simple" class="active">均值</button>
-                    <button data-w="aum_w">AUM</button>
+                    <button data-w="simple">均值</button>
+                    <button data-w="aum_w" class="active">AUM</button>
                     <button data-w="vol_w">成交量</button>
                 </div>
             </div>
@@ -2169,6 +2171,8 @@ ${embeddedScript}
       return;
     }
     const embeddedScript = scriptMatch[1]
+      .replace("groupLevel:  META.group_levels[1],", "groupLevel:  META.group_levels[2],")
+      .replace("weightMode:  'simple',", "weightMode:  'aum_w',")
       .replace("'#1e2535'", "'#f3f4f6'")
       .replace("'#1a3d2b'", "'#d1fae5'")
       .replace("'#3d1a1a'", "'#fee2e2'");
@@ -2350,10 +2354,54 @@ ${embeddedScript}
         </div>
     </header>
     <div id="etf-main">
-        <script>
-${embeddedScript}
-        </script>
+        <div id="topbar">
+            <div class="ctrl-group">
+                <label>分组</label>
+                <select id="groupSelect"></select>
+            </div>
+            <div class="ctrl-group">
+                <label>加权</label>
+                <div class="toggle-btn" id="weightToggle">
+                    <button data-w="simple">均值</button>
+                    <button data-w="aum_w" class="active">AUM</button>
+                    <button data-w="vol_w">成交量</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <label>资产类别</label>
+                <select id="assetSelect"></select>
+            </div>
+            <div class="ctrl-group">
+                <input type="text" id="searchBox" placeholder="搜索代码 / 名称…">
+            </div>
+            <div class="meta" id="metaLine"></div>
+        </div>
+
+        <div id="statsBar"></div>
+
+        <div class="table-wrap" id="tableWrap">
+            <table id="mainTable">
+                <thead id="mainThead">
+                    <tr>
+                        <th class="col-label" id="th-label">分组 / ETF</th>
+                        <th class="col-cnt"   id="th-count"># ETFs</th>
+                        <th class="col-ret"   id="th-1m">1M</th>
+                        <th class="col-ret"   id="th-3m">3M</th>
+                        <th class="col-ret"   id="th-6m">6M</th>
+                        <th class="col-ret"   id="th-1y">1Y</th>
+                        <th class="col-aum"   id="th-aum">AUM</th>
+                        <th class="th-cls col-cls">策略</th>
+                        <th class="th-cls col-cls">加权方式</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
+
+    <script>
+${embeddedScript}
+    </script>
     <script src="/js/main.js?v=${Date.now()}"></script>
 </body>
 </html>`;
