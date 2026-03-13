@@ -14,12 +14,19 @@ OUTPUT_DIR = BASE_DIR / "output"
 UNIVERSE_DASHBOARD  = OUTPUT_DIR / "universe_trends.html"
 EXCEL_FULL_UNIVERSE = OUTPUT_DIR / "full_universe.xlsx"
 
+# CN (A-share) ETF universe
+CN_UNIVERSE_DASHBOARD  = OUTPUT_DIR / "cn_universe_trends.html"
+EXCEL_CN_UNIVERSE      = OUTPUT_DIR / "cn_universe.xlsx"
+
 # ---------------------------------------------------------------------------
 # TradingView Screener — universe fetch settings
 # ---------------------------------------------------------------------------
 
 # Minimum AUM to include in the full universe export ($10M by default)
 UNIVERSE_MIN_AUM = 10_000_000
+
+# Minimum AUM for CN ETFs (100M CNY ≈ 14M USD)
+CN_UNIVERSE_MIN_AUM = 100_000_000
 
 # Maximum ETFs to fetch (TradingView cap)
 UNIVERSE_LIMIT = 10_000

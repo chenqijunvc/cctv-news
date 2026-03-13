@@ -20,8 +20,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from tradingview_screener import Query
-from src.screener import fetch_full_universe
-from src.universe_dashboard import build_universe_dashboard
+from src.screener import fetch_full_universe, fetch_cn_universe
+from src.universe_dashboard import build_universe_dashboard, build_cn_dashboard
 import config.settings as cfg
 
 
@@ -62,26 +62,52 @@ def main():
     # ── Step 1: fetch live universe (optional) ────────────────────────────
     if not args.skip_fetch:
         print("=" * 60)
-        print("STEP 1 — Fetching ETF Universe from TradingView")
+        print("STEP 1 — Fetching US ETF Universe from TradingView")
         print("=" * 60)
         short_term = detect_regime()
         df = fetch_full_universe(short_term=short_term)
         df.to_excel(cfg.EXCEL_FULL_UNIVERSE, index=False, engine="openpyxl")
         print(f"  Saved {len(df):,} ETFs → {cfg.EXCEL_FULL_UNIVERSE}")
+
+        print()
+        print("=" * 60)
+        print("STEP 1b — Fetching CN (A-share) ETF Universe from TradingView")
+        print("=" * 60)
+        cn_df = fetch_cn_universe(short_term=short_term)
+        cn_df.to_excel(cfg.EXCEL_CN_UNIVERSE, index=False, engine="openpyxl")
+        print(f"  Saved {len(cn_df):,} CN ETFs → {cfg.EXCEL_CN_UNIVERSE}")
+
+        # Write a lightweight JSON for the Node.js Gemini prompt injection
+        keep_cols = [c for c in ["name", "description", "asset_class", "category", "focus", "niche", "aum"] if c in cn_df.columns]
+        cn_list_path = cfg.OUTPUT_DIR / "cn_universe_list.json"
+        cn_df[keep_cols].to_json(str(cn_list_path), orient="records", force_ascii=False, indent=2)
+        print(f"  Saved CN ETF prompt list → {cn_list_path}")
     else:
         if not cfg.EXCEL_FULL_UNIVERSE.exists():
             print("ERROR: full_universe.xlsx not found. Run without --skip-fetch first.")
             sys.exit(1)
         print(f"Skipping fetch; using {cfg.EXCEL_FULL_UNIVERSE}")
 
-    # ── Step 2: build dashboard ───────────────────────────────────────────
+    # ── Step 2: build US dashboard ────────────────────────────────────────
     print()
     print("=" * 60)
-    print("STEP 2 — Building Universe Trend Dashboard")
+    print("STEP 2 — Building US Universe Trend Dashboard")
     print("=" * 60)
     out = build_universe_dashboard(cfg.EXCEL_FULL_UNIVERSE, cfg.UNIVERSE_DASHBOARD)
-    print(f"\n✅ Dashboard → {out.resolve()}")
-    print("   Open the HTML file in your browser to view the results.")
+    print(f"\n✅ US Dashboard → {out.resolve()}")
+
+    # ── Step 3: build CN dashboard ────────────────────────────────────────
+    if cfg.EXCEL_CN_UNIVERSE.exists():
+        print()
+        print("=" * 60)
+        print("STEP 3 — Building CN ETF Universe Trend Dashboard")
+        print("=" * 60)
+        cn_out = build_cn_dashboard(cfg.EXCEL_CN_UNIVERSE, cfg.CN_UNIVERSE_DASHBOARD)
+        print(f"\n✅ CN Dashboard → {cn_out.resolve()}")
+    else:
+        print("\n⚠️  CN universe Excel not found, skipping CN dashboard build.")
+
+    print("   Open the HTML files in your browser to view the results.")
 
 
 if __name__ == "__main__":

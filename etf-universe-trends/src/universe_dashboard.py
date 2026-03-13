@@ -199,6 +199,151 @@ def build_universe_dashboard(
 
 
 # ---------------------------------------------------------------------------
+# CN (A-share) ETF dashboard
+# ---------------------------------------------------------------------------
+
+def build_cn_dashboard(
+    universe_path: Path = None,
+    output_path: Path = None,
+) -> Path:
+    """Build the A-share ETF universe trend dashboard HTML.
+
+    Exact same process as build_universe_dashboard — only the default
+    source/output paths differ.
+
+    Parameters
+    ----------
+    universe_path : Path to cn_universe.xlsx  (defaults to settings value)
+    output_path   : Destination HTML path      (defaults to settings value)
+
+    Returns
+    -------
+    Path to the written HTML file.
+    """
+    universe_path = universe_path or cfg.EXCEL_CN_UNIVERSE
+    output_path   = output_path   or cfg.CN_UNIVERSE_DASHBOARD
+
+    # ── load & decode ──────────────────────────────────────────────────────
+    df = pd.read_excel(universe_path, engine="openpyxl")
+
+    # Ensure classification labels exist (recode any remaining float IDs)
+    for field in ("strategy", "weighting_scheme", "selection_criteria"):
+        if field in df.columns:
+            first_valid = df[field].dropna().iloc[0] if not df[field].dropna().empty else None
+            if first_valid is not None:
+                try:
+                    float(first_valid)          # still a number → map it
+                    df[field] = _map_field(df[field], field)
+                except (ValueError, TypeError):
+                    pass                        # already a string label
+
+    # Fill missing labels
+    for col_name in ["asset_class", "category", "focus", "niche",
+                     "strategy", "weighting_scheme", "selection_criteria"]:
+        if col_name in df.columns:
+            df[col_name] = df[col_name].fillna("Unknown").replace("", "Unknown")
+
+    # Numeric return columns
+    for rc in RET_COLS:
+        if rc in df.columns:
+            df[rc] = pd.to_numeric(df[rc], errors="coerce")
+
+    # AUM / volume as numeric
+    df["aum"]            = pd.to_numeric(df.get("aum",            pd.Series(dtype=float)), errors="coerce").fillna(0)
+    df["average_volume"] = pd.to_numeric(df.get("average_volume", pd.Series(dtype=float)), errors="coerce").fillna(0)
+    df["expense_ratio"]  = pd.to_numeric(df.get("expense_ratio",  pd.Series(dtype=float)), errors="coerce")
+
+    # ── build per-ETF records (for individual rows in expanded view) ────────
+    etf_records = []
+    display_cols = [
+        "ticker", "name", "description",
+        "asset_class", "category", "focus", "niche",
+        "strategy", "weighting_scheme", "selection_criteria",
+        "aum", "average_volume", "expense_ratio",
+    ] + RET_COLS
+
+    existing = [c for c in display_cols if c in df.columns]
+    for _, row in df[existing].iterrows():
+        rec = {}
+        for c in existing:
+            v = row[c]
+            if isinstance(v, float) and np.isnan(v):
+                rec[c] = None
+            elif isinstance(v, (np.integer, np.floating)):
+                rec[c] = float(v)
+            else:
+                rec[c] = v
+        etf_records.append(rec)
+
+    # ── build group-level aggregates for all 4 depth levels ───────────────
+    def _agg_group(group_cols: list[str]) -> list[dict]:
+        rows = []
+        for key, gdf in df.groupby(group_cols, observed=True, dropna=False):
+            key_tuple = key if isinstance(key, tuple) else (key,)
+            # pad to a fixed length so JS indexing is predictable
+            key_padded = list(key_tuple) + [""] * (4 - len(key_tuple))
+
+            n = len(gdf)
+            total_aum = gdf["aum"].sum()
+            total_vol = gdf["average_volume"].sum()
+
+            simple, aum_w, vol_w = {}, {}, {}
+            for rc in RET_COLS:
+                if rc not in gdf.columns:
+                    simple[rc] = aum_w[rc] = vol_w[rc] = None
+                    continue
+                valid = gdf[rc].dropna()
+                valid_aum = gdf.loc[valid.index, "aum"]
+                valid_vol = gdf.loc[valid.index, "average_volume"]
+
+                simple[rc] = float(valid.mean()) if len(valid) else None
+
+                aum_sum = valid_aum.sum()
+                aum_w[rc] = float((valid * valid_aum).sum() / aum_sum) if aum_sum > 0 else simple[rc]
+
+                vol_sum = valid_vol.sum()
+                vol_w[rc] = float((valid * valid_vol).sum() / vol_sum) if vol_sum > 0 else simple[rc]
+
+            # list of ticker strings belonging to this group
+            ticker_col = "ticker" if "ticker" in gdf.columns else "name"
+            tickers = gdf[ticker_col].dropna().tolist()
+
+            rows.append({
+                "keys":    key_padded,          # [asset_class, category, focus, niche]
+                "depth":   len(group_cols),
+                "count":   n,
+                "total_aum": float(total_aum),
+                "simple":  simple,
+                "aum_w":   aum_w,
+                "vol_w":   vol_w,
+                "tickers": tickers,
+            })
+        return rows
+
+    aggregates = {}
+    for label, cols in GROUP_LEVELS.items():
+        aggregates[label] = _agg_group(cols)
+
+    # ── serialise to JSON ───────────────────────────────────────────────────
+    etf_json  = json.dumps(etf_records,              default=str)
+    agg_json  = json.dumps(aggregates,               default=str)
+    meta_json = json.dumps({
+        "generated":    pd.Timestamp.now().isoformat(timespec="seconds"),
+        "total_etfs":   len(df),
+        "ret_cols":     RET_COLS,
+        "group_levels": list(GROUP_LEVELS.keys()),
+    })
+
+    html = _build_html(etf_json, agg_json, meta_json)
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(html, encoding="utf-8")
+    print(f"  CN universe dashboard → {output_path}")
+    return output_path
+
+
+# ---------------------------------------------------------------------------
 # HTML / CSS / JS template
 # ---------------------------------------------------------------------------
 

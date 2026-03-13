@@ -108,3 +108,49 @@ def fetch_full_universe(short_term: bool = False) -> pd.DataFrame:
     df["momentum_score"] = df["nav_total_return.3M"] if short_term else df["nav_total_return.1Y"]
 
     return df
+
+
+# ---------------------------------------------------------------------------
+# CN (A-share) ETF universe fetch
+# ---------------------------------------------------------------------------
+
+def fetch_cn_universe(short_term: bool = False) -> pd.DataFrame:
+    """Fetch all A-share ETFs from TradingView China market.
+
+    Parameters
+    ----------
+    short_term : If True, adds a 3M momentum_score; otherwise uses 1Y.
+
+    Returns
+    -------
+    DataFrame sorted by AUM descending with classification labels applied.
+    """
+    _, df = (
+        Query()
+        .set_markets("china")
+        .select(
+            "name", "description",
+            "asset_class", "category", "focus", "niche",
+            "strategy", "weighting_scheme", "selection_criteria",
+            "aum", "average_volume", "expense_ratio", "nav",
+            "nav_total_return.1M", "nav_total_return.3M",
+            "nav_total_return.6M", "nav_total_return.1Y",
+            "exchange", "country", "currency",
+        )
+        .where(
+            col("type")           == "fund",
+            col("aum")            > cfg.CN_UNIVERSE_MIN_AUM,
+            col("exchange")       != "OTC",
+            col("leveraged_flag") == "Non-leveraged",
+        )
+        .order_by("aum", ascending=False)
+        .limit(cfg.UNIVERSE_LIMIT)
+        .get_scanner_data()
+    )
+    print(f"  CN universe fetched: {len(df):,} ETFs")
+
+    df = map_classifications(df)
+    df = assign_asset_groups(df)
+    df["momentum_score"] = df["nav_total_return.3M"] if short_term else df["nav_total_return.1Y"]
+
+    return df

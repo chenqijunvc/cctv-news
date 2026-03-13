@@ -249,6 +249,7 @@ CLASSIFICATION_MAP = {
         13:   "Broad-based",            # VOO, SPY, VTI
 
         # Equity > Sector > Communication services
+        143: "Communications equipment",  # XLC, FCOM
         1094: "Media & entertainment",  # GGME, MUSQ
         9535: "Interactive Media & Services",  # GOOY, FBY
 
@@ -290,13 +291,15 @@ CLASSIFICATION_MAP = {
         1081: "Pharma, biotech & life sciences",  # PBPH
         1082: "Biotechnology",          # BBC
         1083: "Health care technology", # HTEC, GDOC
-        1084: "Health care equipment & supplies",  # IHI
+        1084: "Health care equipment",  # IHI
+        1085: "Health care equipment & services",  # IHF, XHS
 
         # Equity > Sector > Industrials
         55:   "Construction & engineering",  # PKB
         83:   "Aerospace & defense",    # ITA, PPA
         106:  "Transportation",         # IYT, XTN
         9522: "Passenger airlines",     # JETS
+        9529: "Electrical Components & Equipment",  # IAE, VIS, EXPO
 
         # Equity > Sector > Information technology
         93:   "Internet services & infrastructure",  # KWEB, FDN

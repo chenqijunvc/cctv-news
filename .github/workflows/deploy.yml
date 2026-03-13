@@ -52,6 +52,7 @@ jobs:
         pip install -r etf-universe-trends/requirements.txt
         
     - name: Run stock screener
+      continue-on-error: true
       run: |
         echo "Running stock screening analysis..."
         python twscreener-cn.py
@@ -97,6 +98,7 @@ jobs:
         git add assets/
         git add analysis/
         git add stock_data/
+        git add etf-universe-trends/output/
         if git diff --staged --quiet; then
           echo "No new data to commit"
         else
