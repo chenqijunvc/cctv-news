@@ -1,0 +1,4 @@
+tradingview-screener
+pandas
+openpyxl
+numpy

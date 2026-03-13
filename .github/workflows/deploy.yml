@@ -46,12 +46,20 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
+        # Main site dependencies
         pip install -r requirements.txt
+        # ETF universe dashboard dependencies
+        pip install -r etf-universe-trends/requirements.txt
         
     - name: Run stock screener
       run: |
         echo "Running stock screening analysis..."
         python twscreener-cn.py
+
+    - name: Refresh ETF universe dashboard
+      run: |
+        echo "Fetching ETF universe from TradingView..."
+        cd etf-universe-trends && python run.py && cd ..
       
     - name: Fetch latest news data
       run: |

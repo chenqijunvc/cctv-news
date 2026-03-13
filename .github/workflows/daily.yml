@@ -7,10 +7,9 @@ on:
         description: 'Log level'
         required: true
         default: 'warning'
-  # （东8区，所以需要 +8小时） 拉取最新数据
-  # 北京时间每天9:30pm更新
-  schedule:
-  - cron: "30 13 * * *"
+  # Disabled: superseded by deploy.yml which runs the full pipeline
+  # schedule:
+  # - cron: "30 13 * * *"
 
 jobs:
   xwlb:

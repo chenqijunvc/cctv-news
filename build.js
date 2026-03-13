@@ -80,6 +80,7 @@ class NewsArchiveBuilder {
     await this.generateAnalysisPage(newsIndex);
     await this.generateOpportunitiesPage(newsIndex);
     await this.generateStockTrackingPage();
+    await this.generateETFUniversePage();
     await this.generateArchivePages(newsIndex);
     await this.generateAPIEndpoints(newsIndex);
     
@@ -546,6 +547,7 @@ ${newsText}
                 <a href="/analysis.html" class="nav-link">今日分析</a>
                 <a href="/opportunities.html" class="nav-link">投资主题</a>
                 <a href="/stocks.html" class="nav-link">股票追踪</a>
+                <a href="/etf-universe.html" class="nav-link">美股ETF</a>
             </nav>
         </div>
     </header>
@@ -618,6 +620,7 @@ ${newsText}
                 <a href="/analysis.html" class="nav-link active">今日分析</a>
                 <a href="/opportunities.html" class="nav-link">投资主题</a>
                 <a href="/stocks.html" class="nav-link">股票追踪</a>
+                <a href="/etf-universe.html" class="nav-link">美股ETF</a>
             </nav>
         </div>
     </header>
@@ -718,6 +721,7 @@ ${newsText}
                 <a href="/analysis.html" class="nav-link">今日分析</a>
                 <a href="/opportunities.html" class="nav-link active">投资主题</a>
                 <a href="/stocks.html" class="nav-link">股票追踪</a>
+                <a href="/etf-universe.html" class="nav-link">美股ETF</a>
             </nav>
         </div>
     </header>
@@ -883,6 +887,7 @@ ${newsText}
                 <a href="/analysis.html" class="nav-link">今日分析</a>
                 <a href="/opportunities.html" class="nav-link">投资主题</a>
                 <a href="/stocks.html" class="nav-link active">股票追踪</a>
+                <a href="/etf-universe.html" class="nav-link">美股ETF</a>
             </nav>
         </div>
     </header>
@@ -1838,6 +1843,262 @@ ${newsText}
     
     console.log(`📊 Generated search index with ${searchIndex.length} items`);
     await fs.writeJson(path.join(this.outputDir, 'api', 'search.json'), { index: searchIndex });
+  }
+
+  async generateETFUniversePage() {
+    console.log('📊 Generating 美股ETF page...');
+
+    const srcHtml = path.join(__dirname, 'etf-universe-trends', 'output', 'universe_trends.html');
+
+    if (!await fs.pathExists(srcHtml)) {
+      console.warn('⚠️  etf-universe-trends/output/universe_trends.html not found. Run "python run.py" inside etf-universe-trends/ first.');
+      return;
+    }
+
+    // Extract the embedded <script> block from the Python-generated file
+    const srcContent = await fs.readFile(srcHtml, 'utf8');
+    const scriptMatch = srcContent.match(/<script>([\s\S]*?)<\/script>/);
+    if (!scriptMatch) {
+      console.warn('⚠️  Could not extract script block from universe_trends.html');
+      return;
+    }
+    const embeddedScript = scriptMatch[1]
+      // Remap dark-theme heatmap colours to light-theme equivalents
+      .replace("'#1e2535'", "'#f3f4f6'")   // neutral mid  → light gray
+      .replace("'#1a3d2b'", "'#d1fae5'")   // positive bg  → light green
+      .replace("'#3d1a1a'", "'#fee2e2'");   // negative bg  → light red
+
+    const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美股ETF趋势 - Trend Following AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=${Date.now()}">
+    <style>
+        /* ── page layout ── */
+        html, body { height: 100%; }
+        body { display: flex; flex-direction: column; overflow: hidden; }
+        header { margin-bottom: 0 !important; flex-shrink: 0; }
+        #etf-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* ── controls bar ── */
+        #topbar {
+            background: var(--neutral-pale);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        #topbar .meta { font-size: 0.73rem; color: var(--text-muted); margin-left: auto; }
+        .ctrl-group { display: flex; align-items: center; gap: 6px; }
+        .ctrl-group label { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; }
+        select {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        select:focus { outline: none; border-color: var(--primary-teal-light); }
+        .toggle-btn { display: flex; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden; }
+        .toggle-btn button {
+            background: #fff;
+            border: none;
+            border-right: 1px solid #d1d5db;
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .toggle-btn button:last-child { border-right: none; }
+        .toggle-btn button.active { background: var(--primary-teal); color: #fff; }
+        #searchBox {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            width: 180px;
+            font-family: inherit;
+        }
+        #searchBox:focus { outline: none; border-color: var(--primary-teal-light); }
+        #searchBox::placeholder { color: #9ca3af; }
+
+        /* ── stats bar ── */
+        #statsBar {
+            display: flex;
+            gap: 18px;
+            padding: 6px 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .stat-chip { font-size: 0.73rem; color: var(--text-secondary); }
+        .stat-chip span { color: var(--primary-teal); font-weight: 600; }
+
+        /* ── table ── */
+        .table-wrap { flex: 1; overflow-y: auto; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+        thead tr { position: sticky; top: 0; z-index: 50; }
+        thead th {
+            padding: 8px 10px;
+            text-align: right;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.71rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--border);
+            background: var(--neutral-pale);
+        }
+        thead th:first-child { text-align: left; min-width: 260px; position: sticky; left: 0; z-index: 60; background: var(--neutral-pale); }
+        thead th.th-desc { text-align: left; min-width: 190px; }
+        thead th.th-cls  { text-align: left; min-width: 110px; }
+        thead th:hover { color: var(--primary-teal); }
+        thead th.sort-active { color: var(--primary-teal); }
+        .sort-arrow { font-size: .65rem; margin-left: 3px; opacity: .85; }
+
+        /* col widths */
+        .col-label { min-width: 260px; }
+        .col-cls   { min-width: 110px; }
+        .col-ret   { min-width: 78px; text-align: right; }
+        .col-aum   { min-width: 88px; text-align: right; }
+        .col-cnt   { min-width: 58px; text-align: right; }
+
+        /* group rows */
+        tr.group-row { cursor: pointer; }
+        tr.group-row:hover td { filter: brightness(0.96); }
+        tr.group-row td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr.group-row td:first-child { position: sticky; left: 0; z-index: 10; }
+        tr.group-row.d1 td:first-child { padding-left: 8px;  font-size:.85rem; font-weight:700; color: var(--neutral-dark); }
+        tr.group-row.d2 td:first-child { padding-left: 22px; font-size:.83rem; font-weight:600; color: var(--neutral-dark); }
+        tr.group-row.d3 td:first-child { padding-left: 38px; font-size:.81rem; font-weight:500; color: var(--neutral-medium); }
+        tr.group-row.d4 td:first-child { padding-left: 54px; font-size:.79rem; font-weight:400; color: var(--neutral-light); }
+        tr.group-row.d1 td { background: #f8fafc; }
+        tr.group-row.d2 td { background: #f1f5f9; }
+        tr.group-row.d3 td { background: #e8edf2; }
+        tr.group-row.d4 td { background: #dfe5ec; }
+
+        .expand-icon { display: inline-block; width: 13px; color: #9ca3af; font-size: 0.65rem; transition: transform .15s; margin-right: 3px; }
+        .expanded .expand-icon { transform: rotate(90deg); color: var(--primary-teal); }
+        .cnt-badge { display: inline-block; background: #e2e8f0; color: var(--text-secondary); border-radius: 10px; padding: 1px 6px; font-size: 0.67rem; margin-left: 5px; vertical-align: middle; }
+
+        /* breadcrumb */
+        .bc-sep { color: #d1d5db; margin: 0 4px; font-size: .75em; }
+        .bc-dim { color: var(--text-muted); }
+        .bc-cur { color: var(--neutral-dark); font-weight: 600; }
+
+        /* ETF sub-rows */
+        tr.etf-row td { padding: 4px 10px; background: #fff; border-bottom: 1px solid #f3f4f6; font-size: 0.77rem; color: var(--text-secondary); vertical-align: middle; }
+        tr.etf-row td:first-child { padding-left: 68px; position: sticky; left: 0; z-index: 10; background: #fff; }
+        .ticker-sym { color: var(--primary-teal); font-weight: 700; font-size: .82rem; }
+        .etf-name   { color: var(--text-muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
+        .cls-tag    { color: var(--text-muted); font-size: .72rem; white-space: nowrap; }
+
+        /* return cells */
+        .ret-cell { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; font-size: .79rem; padding: 4px 10px; transition: background .2s; }
+        .pos { color: var(--data-green); }
+        .neg { color: var(--data-red); }
+        .neu { color: var(--text-muted); }
+        .aum-cell { text-align: right; color: var(--text-muted); font-size: .73rem; white-space: nowrap; }
+        .cnt-cell { text-align: right; color: var(--text-muted); font-size: .73rem; }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f3f4f6; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="site-title">Trendfollowing.AI</a>
+            <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
+                <span class="hamburger"></span>
+            </button>
+            <nav class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link">首页</a>
+                <a href="/analysis.html" class="nav-link">今日分析</a>
+                <a href="/opportunities.html" class="nav-link">投资主题</a>
+                <a href="/stocks.html" class="nav-link">股票追踪</a>
+                <a href="/etf-universe.html" class="nav-link active">美股ETF</a>
+            </nav>
+        </div>
+    </header>
+
+    <div id="etf-main">
+        <div id="topbar">
+            <div class="ctrl-group">
+                <label>分组</label>
+                <select id="groupSelect"></select>
+            </div>
+            <div class="ctrl-group">
+                <label>加权</label>
+                <div class="toggle-btn" id="weightToggle">
+                    <button data-w="simple" class="active">均值</button>
+                    <button data-w="aum_w">AUM</button>
+                    <button data-w="vol_w">成交量</button>
+                </div>
+            </div>
+            <div class="ctrl-group">
+                <label>资产类别</label>
+                <select id="assetSelect"></select>
+            </div>
+            <div class="ctrl-group">
+                <input type="text" id="searchBox" placeholder="搜索代码 / 名称…">
+            </div>
+            <div class="meta" id="metaLine"></div>
+        </div>
+
+        <div id="statsBar"></div>
+
+        <div class="table-wrap" id="tableWrap">
+            <table id="mainTable">
+                <thead id="mainThead">
+                    <tr>
+                        <th class="col-label" id="th-label">分组 / ETF</th>
+                        <th class="col-cnt"   id="th-count"># ETFs</th>
+                        <th class="col-ret"   id="th-1m">1M</th>
+                        <th class="col-ret"   id="th-3m">3M</th>
+                        <th class="col-ret"   id="th-6m">6M</th>
+                        <th class="col-ret"   id="th-1y">1Y</th>
+                        <th class="col-aum"   id="th-aum">AUM</th>
+                        <th class="th-cls col-cls">策略</th>
+                        <th class="th-cls col-cls">加权方式</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+${embeddedScript}
+    </script>
+    <script src="/js/main.js?v=${Date.now()}"></script>
+</body>
+</html>`;
+
+    await fs.writeFile(path.join(this.outputDir, 'etf-universe.html'), html);
+    console.log('  美股ETF page → dist/etf-universe.html');
   }
 }
 
