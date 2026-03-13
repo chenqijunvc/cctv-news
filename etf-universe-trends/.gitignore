@@ -16,7 +16,9 @@ env/
 
 # Runtime output (generated on each run)
 data/
-output/
+# Ignore large xlsx files but keep HTML dashboards and JSON prompt files
+output/*.xlsx
+output/~$*.xlsx
 
 # Secrets / API keys
 .env
