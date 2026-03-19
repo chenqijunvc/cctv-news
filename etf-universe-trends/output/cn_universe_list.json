@@ -42,7 +42,7 @@
     "category":"Sector",
     "focus":"Infrastructure",
     "niche":"Internet services & infrastructure",
-    "aum":72714575419.7454071045
+    "aum":72508268506.6031951904
   },
   {
     "name":"588000",
@@ -222,7 +222,7 @@
     "category":"Broad market, broad-based",
     "focus":"Investment grade",
     "niche":"Intermediate",
-    "aum":32518656785.3367996216
+    "aum":32252060728.1795005798
   },
   {
     "name":"159338",
@@ -510,7 +510,7 @@
     "category":"Corporate, broad-based",
     "focus":"Broad credit",
     "niche":"Broad maturities",
-    "aum":13422425615.9727993011
+    "aum":13424125849.6644001007
   },
   {
     "name":"560860",
@@ -627,7 +627,7 @@
     "category":"Sector",
     "focus":"Industrials",
     "niche":"Aerospace & defense",
-    "aum":10671070365.739200592
+    "aum":10388489466.0995998383
   },
   {
     "name":"516150",
@@ -646,15 +646,6 @@
     "focus":"Infrastructure",
     "niche":"Video games & eSports",
     "aum":10005918803.8568000793
-  },
-  {
-    "name":"563220",
-    "description":"Fullgoal CSI A500 Exchange Traded Fund Units",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Large cap",
-    "niche":"Broad-based",
-    "aum":9944522553.5774993896
   },
   {
     "name":"512760",
@@ -682,6 +673,15 @@
     "focus":"Large cap",
     "niche":"Broad-based",
     "aum":9836235407.2950000763
+  },
+  {
+    "name":"563220",
+    "description":"Fullgoal CSI A500 Exchange Traded Fund Units",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Large cap",
+    "niche":"Broad-based",
+    "aum":9791732151.0098991394
   },
   {
     "name":"551500",
@@ -717,7 +717,7 @@
     "category":"Size and style",
     "focus":"Total market",
     "niche":"Broad-based",
-    "aum":9458253259.2000007629
+    "aum":9169014524.0
   },
   {
     "name":"159845",
@@ -744,7 +744,7 @@
     "category":"Precious metals",
     "focus":"Gold",
     "niche":"Physically held",
-    "aum":9100152631.8036003113
+    "aum":9115778895.9839992523
   },
   {
     "name":"515100",
@@ -801,6 +801,15 @@
     "aum":8108612145.4499998093
   },
   {
+    "name":"510210",
+    "description":"SSE Composite Index ETF",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":7981416285.890999794
+  },
+  {
     "name":"516160",
     "description":"China Southern CSI New Energy Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -808,15 +817,6 @@
     "focus":"Energy",
     "niche":"Broad-based",
     "aum":7776000514.5867004395
-  },
-  {
-    "name":"510210",
-    "description":"SSE Composite Index ETF",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":7674504496.001999855
   },
   {
     "name":"159545",
@@ -906,7 +906,7 @@
     "category":"Size and style",
     "focus":"Total market",
     "niche":"Broad-based",
-    "aum":6436529159.6195001602
+    "aum":6447457708.2936000824
   },
   {
     "name":"159901",
@@ -1224,15 +1224,6 @@
     "aum":3984981714.0662999153
   },
   {
-    "name":"159825",
-    "description":"Fullgoal CSI Agriculture Thematic Index Exchange Traded Fund",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Agriculture",
-    "aum":3954371979.0735001564
-  },
-  {
     "name":"159232",
     "description":"China Southern CSI All Share Free Cash Flow Index Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -1269,6 +1260,15 @@
     "aum":3834745094.7555999756
   },
   {
+    "name":"159825",
+    "description":"Fullgoal CSI Agriculture Thematic Index Exchange Traded Fund",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Agriculture",
+    "aum":3770539394.1173000336
+  },
+  {
     "name":"510100",
     "description":"E FUND SSE 50 INDEX EXCHANGE-TRADED FUND",
     "asset_class":"Equity",
@@ -1302,7 +1302,7 @@
     "category":"Sector",
     "focus":"Infrastructure",
     "niche":"Consumer",
-    "aum":3621712933.5138001442
+    "aum":3631840469.56580019
   },
   {
     "name":"511150",
@@ -1341,15 +1341,6 @@
     "aum":3478693694.4000000954
   },
   {
-    "name":"159246",
-    "description":"Fullgoal GEM Artificial Intelligence ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Robotics & AI",
-    "aum":3452353021.4381999969
-  },
-  {
     "name":"159655",
     "description":"ChinaAMC S&P 500 ETF Units",
     "asset_class":"Equity",
@@ -1365,7 +1356,7 @@
     "category":"Size and style",
     "focus":"Total market",
     "niche":"Value",
-    "aum":3364705845.6840000153
+    "aum":3352375200.6360001564
   },
   {
     "name":"513950",
@@ -1374,7 +1365,7 @@
     "category":"High dividend yield",
     "focus":"High dividend yield",
     "niche":"Broad-based",
-    "aum":3296207227.5999999046
+    "aum":3284116580.1999998093
   },
   {
     "name":"159623",
@@ -1384,6 +1375,15 @@
     "focus":"Infrastructure",
     "niche":"Environment",
     "aum":3249228377.8850002289
+  },
+  {
+    "name":"159246",
+    "description":"Fullgoal GEM Artificial Intelligence ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Robotics & AI",
+    "aum":3240275043.6529998779
   },
   {
     "name":"561330",
@@ -1455,7 +1455,7 @@
     "category":"Sector",
     "focus":"Health care",
     "niche":"Broad-based",
-    "aum":3006138918.3752999306
+    "aum":3014395651.4997000694
   },
   {
     "name":"588800",
@@ -1476,15 +1476,6 @@
     "aum":2860595136.1174001694
   },
   {
-    "name":"588380",
-    "description":"Fullgoal CSI STAR&CHINEXT 50 Index ETF",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Large cap",
-    "niche":"Broad-based",
-    "aum":2859774320.8537998199
-  },
-  {
     "name":"516570",
     "description":"E Fund CSI Petrochemical Industry Stimulus ETF",
     "asset_class":"Equity",
@@ -1492,6 +1483,24 @@
     "focus":"Energy",
     "niche":"Broad-based",
     "aum":2838075015.8949999809
+  },
+  {
+    "name":"159629",
+    "description":"Fullgoal CSI 1000 ETF",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":2827542738.1340999603
+  },
+  {
+    "name":"588380",
+    "description":"Fullgoal CSI STAR&CHINEXT 50 Index ETF",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Large cap",
+    "niche":"Broad-based",
+    "aum":2754231506.5356998444
   },
   {
     "name":"513970",
@@ -1510,15 +1519,6 @@
     "focus":"Information technology",
     "niche":"Broad-based",
     "aum":2708361364.8000001907
-  },
-  {
-    "name":"159629",
-    "description":"Fullgoal CSI 1000 ETF",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":2631727720.581799984
   },
   {
     "name":"516510",
@@ -1590,7 +1590,7 @@
     "category":"Sector",
     "focus":"Infrastructure",
     "niche":"Robotics & AI",
-    "aum":2471561683.7230000496
+    "aum":2440463962.7800002098
   },
   {
     "name":"159129",
@@ -1647,15 +1647,6 @@
     "aum":2233233571.2999000549
   },
   {
-    "name":"159971",
-    "description":"Fullgoal Growth Enterprise Index ETF Fund",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":2225364637.5487999916
-  },
-  {
     "name":"159633",
     "description":"E Fund CSI 1000 ETF",
     "asset_class":"Equity",
@@ -1690,6 +1681,15 @@
     "focus":"Infrastructure",
     "niche":"Robotics & AI",
     "aum":2180722033.0535998344
+  },
+  {
+    "name":"159971",
+    "description":"Fullgoal Growth Enterprise Index ETF Fund",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":2167727097.8880000114
   },
   {
     "name":"513600",
@@ -1779,7 +1779,7 @@
     "category":"Size and style",
     "focus":"Large cap",
     "niche":"Broad-based",
-    "aum":1974122606.5
+    "aum":1993722075.4000000954
   },
   {
     "name":"588890",
@@ -1836,15 +1836,6 @@
     "aum":1908648995.7051000595
   },
   {
-    "name":"561160",
-    "description":"Fullgoal CSI Battery Thematic ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Broad thematic",
-    "aum":1883054800.0
-  },
-  {
     "name":"517330",
     "description":"E Fund CSI Yangtze River Protection ETF",
     "asset_class":"Equity",
@@ -1888,6 +1879,15 @@
     "focus":"Total market",
     "niche":"Broad-based",
     "aum":1824589631.1984000206
+  },
+  {
+    "name":"561160",
+    "description":"Fullgoal CSI Battery Thematic ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Broad thematic",
+    "aum":1821646092.5
   },
   {
     "name":"517300",
@@ -1953,15 +1953,6 @@
     "aum":1750184388.7999999523
   },
   {
-    "name":"159583",
-    "description":"Fullgoal CSI Comm Equipment Theme ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Information technology",
-    "niche":"Communications equipment",
-    "aum":1740123784.7162001133
-  },
-  {
     "name":"513000",
     "description":"E Fund Amova Nikkei 225 Exchange Traded Fund (QDII) Units",
     "asset_class":"Equity",
@@ -2007,15 +1998,6 @@
     "aum":1689114490.8441998959
   },
   {
-    "name":"515400",
-    "description":"Fullgoal CSI Big Data Industry Index ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Broad technology",
-    "aum":1682492882.9400000572
-  },
-  {
     "name":"159638",
     "description":"Harvest CSI High-End Equipment Sub-industry 50 Index Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -2052,15 +2034,6 @@
     "aum":1643149587.2000000477
   },
   {
-    "name":"560710",
-    "description":"Fullgoal CSI Shipbuilding Industry Custom Index Exchange Traded Fund Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Industrials",
-    "niche":"Unknown",
-    "aum":1641692754.0
-  },
-  {
     "name":"159790",
     "description":"ChinaAMC CSI China Mainland Low Carbon Economy ETF Units",
     "asset_class":"Equity",
@@ -2077,6 +2050,24 @@
     "focus":"Materials",
     "niche":"Gold miners",
     "aum":1634461372.7999999523
+  },
+  {
+    "name":"515400",
+    "description":"Fullgoal CSI Big Data Industry Index ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Broad technology",
+    "aum":1623237297.5999999046
+  },
+  {
+    "name":"560710",
+    "description":"Fullgoal CSI Shipbuilding Industry Custom Index Exchange Traded Fund Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Industrials",
+    "niche":"Unknown",
+    "aum":1603482928.0
   },
   {
     "name":"588730",
@@ -2178,6 +2169,15 @@
     "aum":1502047623.3299999237
   },
   {
+    "name":"159583",
+    "description":"Fullgoal CSI Comm Equipment Theme ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Information technology",
+    "niche":"Communications equipment",
+    "aum":1489672630.219399929
+  },
+  {
     "name":"560390",
     "description":"E Fund Hang Seng China A Power Grid Equipment Index ETF Units",
     "asset_class":"Equity",
@@ -2214,15 +2214,6 @@
     "aum":1463774936.9985001087
   },
   {
-    "name":"516640",
-    "description":"Fullgoal CSI Chip Industry ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Broad technology",
-    "aum":1433549197.8255000114
-  },
-  {
     "name":"515370",
     "description":"ChinaAMC CSI Photovoltaic Industry Index ETF Units",
     "asset_class":"Equity",
@@ -2256,7 +2247,7 @@
     "category":"Sector",
     "focus":"Financials",
     "niche":"Banks",
-    "aum":1402488445.125
+    "aum":1408097720.5750000477
   },
   {
     "name":"159847",
@@ -2275,6 +2266,15 @@
     "focus":"Health care",
     "niche":"Biotechnology",
     "aum":1386853086.6533999443
+  },
+  {
+    "name":"516640",
+    "description":"Fullgoal CSI Chip Industry ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Broad technology",
+    "aum":1381408328.1707000732
   },
   {
     "name":"159996",
@@ -2412,15 +2412,6 @@
     "aum":1146184093.5936000347
   },
   {
-    "name":"159300",
-    "description":"Wells Fargo Csi 300 Etf",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Large cap",
-    "niche":"Broad-based",
-    "aum":1122902208.530600071
-  },
-  {
     "name":"159607",
     "description":"Harvest CSI Overseas China Internet 30 ETF",
     "asset_class":"Equity",
@@ -2439,13 +2430,22 @@
     "aum":1109126380.6425600052
   },
   {
+    "name":"159300",
+    "description":"Wells Fargo Csi 300 Etf",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Large cap",
+    "niche":"Broad-based",
+    "aum":1106003006.087100029
+  },
+  {
     "name":"159713",
     "description":"Fullgoal CSI Rare Earth Industry ETF",
     "asset_class":"Equity",
     "category":"Sector",
     "focus":"Materials",
     "niche":"Broad-based",
-    "aum":1106701251.9855000973
+    "aum":1077432172.4200000763
   },
   {
     "name":"516090",
@@ -2511,15 +2511,6 @@
     "aum":999668741.4774999619
   },
   {
-    "name":"515150",
-    "description":"Fullgoal CSI SOEs along Belt & Road Index ETF Fund",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":980999946.3899999857
-  },
-  {
     "name":"562930",
     "description":"E Fund China Securities Software Services ETF",
     "asset_class":"Equity",
@@ -2527,6 +2518,15 @@
     "focus":"Infrastructure",
     "niche":"Cybersecurity",
     "aum":975202872.6000000238
+  },
+  {
+    "name":"515150",
+    "description":"Fullgoal CSI SOEs along Belt & Road Index ETF Fund",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":959366021.743999958
   },
   {
     "name":"588020",
@@ -2562,7 +2562,7 @@
     "category":"Sector",
     "focus":"Energy",
     "niche":"Oil & gas exploration & production",
-    "aum":907736307.7999999523
+    "aum":904185708.0
   },
   {
     "name":"159806",
@@ -2736,15 +2736,6 @@
     "aum":748921241.6000000238
   },
   {
-    "name":"563990",
-    "description":"Fullgoal CSI 800 Free Cash Flow Index Exchange Traded Fund",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":734743082.2999999523
-  },
-  {
     "name":"159651",
     "description":"PING AN FUND MGMT",
     "asset_class":"Fixed Income",
@@ -2761,6 +2752,15 @@
     "focus":"Mid cap",
     "niche":"Broad-based",
     "aum":730110534.0
+  },
+  {
+    "name":"563990",
+    "description":"Fullgoal CSI 800 Free Cash Flow Index Exchange Traded Fund",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":728762435.5
   },
   {
     "name":"560170",
@@ -2790,15 +2790,6 @@
     "aum":711169009.0322639942
   },
   {
-    "name":"515750",
-    "description":"Fullgoal CSI Technology 50 Strategy ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Broad technology",
-    "aum":701913482.1039999723
-  },
-  {
     "name":"159628",
     "description":"Wanjia CNI 2000 ETF Units",
     "asset_class":"Equity",
@@ -2815,6 +2806,15 @@
     "focus":"Infrastructure",
     "niche":"Robotics & AI",
     "aum":693464165.7999999523
+  },
+  {
+    "name":"515750",
+    "description":"Fullgoal CSI Technology 50 Strategy ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Broad technology",
+    "aum":682355921.2941000462
   },
   {
     "name":"159968",
@@ -2880,15 +2880,6 @@
     "aum":643839952.7999999523
   },
   {
-    "name":"159107",
-    "description":"Fullgoal GEM Software ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Information technology",
-    "niche":"Software",
-    "aum":640937800.9187999964
-  },
-  {
     "name":"520910",
     "description":"ChinaAMC CSI Hong Kong Connect Internet Index ETF Units",
     "asset_class":"Equity",
@@ -2925,15 +2916,6 @@
     "aum":634070149.0440000296
   },
   {
-    "name":"561100",
-    "description":"Fullgoal CSI Consumer Electronics Thematic ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Consumer discretionary",
-    "niche":"Broad-based",
-    "aum":633912915.0839999914
-  },
-  {
     "name":"159850",
     "description":"ChinaAMC Hang Seng China Enterprises Exchange Traded Fund(QDII) Units",
     "asset_class":"Equity",
@@ -2959,6 +2941,15 @@
     "focus":"Information technology",
     "niche":"Broad-based",
     "aum":630730497.6000000238
+  },
+  {
+    "name":"159107",
+    "description":"Fullgoal GEM Software ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Information technology",
+    "niche":"Software",
+    "aum":622342255.828799963
   },
   {
     "name":"562080",
@@ -3006,13 +2997,13 @@
     "aum":607559098.6000000238
   },
   {
-    "name":"515250",
-    "description":"Fullgoal CSI Intelligent Vehicle Index ETF Units",
+    "name":"561100",
+    "description":"Fullgoal CSI Consumer Electronics Thematic ETF Units",
     "asset_class":"Equity",
     "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Mobility",
-    "aum":604104808.4313999414
+    "focus":"Consumer discretionary",
+    "niche":"Broad-based",
+    "aum":606676148.1019999981
   },
   {
     "name":"515810",
@@ -3060,6 +3051,15 @@
     "aum":597359619.2280000448
   },
   {
+    "name":"515250",
+    "description":"Fullgoal CSI Intelligent Vehicle Index ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Mobility",
+    "aum":596522796.5171999931
+  },
+  {
     "name":"159230",
     "description":"CHINA ASSET MGT CO",
     "asset_class":"Equity",
@@ -3093,7 +3093,7 @@
     "category":"Sector",
     "focus":"Industrials",
     "niche":"Broad-based",
-    "aum":541705346.0351999998
+    "aum":546890606.6751999855
   },
   {
     "name":"515260",
@@ -3129,7 +3129,7 @@
     "category":"Size and style",
     "focus":"Total market",
     "niche":"Broad-based",
-    "aum":534993821.3795999885
+    "aum":533714123.1972000003
   },
   {
     "name":"589030",
@@ -3159,6 +3159,15 @@
     "aum":524870276.0
   },
   {
+    "name":"515950",
+    "description":"Fullgoal CSI Health Care 50 Index ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Health care",
+    "niche":"Broad-based",
+    "aum":524470537.6344000101
+  },
+  {
     "name":"588210",
     "description":"E Fund SSE Science and Technology Innovation Board 100 Index Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -3166,15 +3175,6 @@
     "focus":"Information technology",
     "niche":"Broad-based",
     "aum":522602626.0
-  },
-  {
-    "name":"515950",
-    "description":"Fullgoal CSI Health Care 50 Index ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Health care",
-    "niche":"Broad-based",
-    "aum":521558535.4363999963
   },
   {
     "name":"159747",
@@ -3294,6 +3294,15 @@
     "aum":481195179.8999999762
   },
   {
+    "name":"159525",
+    "description":"Fullgoal CSI Dividend Low Volatility Index Exchange Traded Fund Units",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":480845564.2221000195
+  },
+  {
     "name":"510710",
     "description":"Bosera SSE 50 Index ETF",
     "asset_class":"Equity",
@@ -3319,15 +3328,6 @@
     "focus":"Health care",
     "niche":"Pharmaceuticals",
     "aum":475603480.1999999881
-  },
-  {
-    "name":"159525",
-    "description":"Fullgoal CSI Dividend Low Volatility Index Exchange Traded Fund Units",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":474672580.4955000281
   },
   {
     "name":"589220",
@@ -3420,15 +3420,6 @@
     "aum":440656798.2870000005
   },
   {
-    "name":"159752",
-    "description":"SWS CSI CN Mainland New Energy Index Exchange Traded Fund Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Renewable energy",
-    "aum":434798404.3713999987
-  },
-  {
     "name":"159001",
     "description":"E FUND MANAGEMENT",
     "asset_class":"Fixed Income",
@@ -3481,6 +3472,15 @@
     "focus":"Total market",
     "niche":"Broad-based",
     "aum":416882454.5
+  },
+  {
+    "name":"159752",
+    "description":"SWS CSI CN Mainland New Energy Index Exchange Traded Fund Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Renewable energy",
+    "aum":416385450.6812000275
   },
   {
     "name":"562890",
@@ -3672,22 +3672,13 @@
     "aum":334287220.3999999762
   },
   {
-    "name":"588960",
-    "description":"Fullgoal SSE Science & Technology Innovation Board New Energy",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Renewable energy",
-    "aum":332918838.209100008
-  },
-  {
     "name":"515850",
     "description":"Fullgoal CSI Securities ETF",
     "asset_class":"Equity",
     "category":"Sector",
     "focus":"Real estate",
     "niche":"Specialized REITs",
-    "aum":329474270.5680000186
+    "aum":332749027.6240000129
   },
   {
     "name":"159597",
@@ -3706,6 +3697,15 @@
     "focus":"Industrials",
     "niche":"Broad-based",
     "aum":326400239.2254999876
+  },
+  {
+    "name":"588960",
+    "description":"Fullgoal SSE Science & Technology Innovation Board New Energy",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Renewable energy",
+    "aum":324846342.8054000139
   },
   {
     "name":"516050",
@@ -3735,15 +3735,6 @@
     "aum":310809154.521600008
   },
   {
-    "name":"561170",
-    "description":"Fullgoal CSI Green Electricity ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Utilities",
-    "niche":"Broad-based",
-    "aum":306802768.1710000038
-  },
-  {
     "name":"588360",
     "description":"Guotai CSI STAR&CHINEXT 50 Index Exchange Traded Fund",
     "asset_class":"Equity",
@@ -3751,6 +3742,15 @@
     "focus":"Total market",
     "niche":"Broad-based",
     "aum":306347492.3600000143
+  },
+  {
+    "name":"561170",
+    "description":"Fullgoal CSI Green Electricity ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Utilities",
+    "niche":"Broad-based",
+    "aum":304583305.6664999723
   },
   {
     "name":"513360",
@@ -3876,7 +3876,7 @@
     "category":"Sector",
     "focus":"Infrastructure",
     "niche":"Low carbon",
-    "aum":269021489.1182000041
+    "aum":265653268.34830001
   },
   {
     "name":"159856",
@@ -4041,15 +4041,6 @@
     "aum":232768246.7199999988
   },
   {
-    "name":"159392",
-    "description":"Fullgoal CNI General Aviation Industry Index ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Industrials",
-    "niche":"Transportation",
-    "aum":231554710.0500000119
-  },
-  {
     "name":"562860",
     "description":"Harvest Bosera CSI Vaccine and Biotechnology Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -4084,6 +4075,15 @@
     "focus":"Total market",
     "niche":"Broad-based",
     "aum":225176128.6290000081
+  },
+  {
+    "name":"159392",
+    "description":"Fullgoal CNI General Aviation Industry Index ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Industrials",
+    "niche":"Transportation",
+    "aum":225031024.0500000119
   },
   {
     "name":"562700",
@@ -4167,15 +4167,6 @@
     "aum":214420577.2800000012
   },
   {
-    "name":"159168",
-    "description":"Fullgoal CSI Industrial Non-ferrous Metal Index Exchange Traded Fund Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Materials",
-    "niche":"Diversified metals & mining",
-    "aum":212666000.9099999964
-  },
-  {
     "name":"159389",
     "description":"HARVEST FUND MGMT",
     "asset_class":"Equity",
@@ -4183,6 +4174,15 @@
     "focus":"Infrastructure",
     "niche":"Digital economy",
     "aum":210849923.1615999937
+  },
+  {
+    "name":"159168",
+    "description":"Fullgoal CSI Industrial Non-ferrous Metal Index Exchange Traded Fund Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Materials",
+    "niche":"Diversified metals & mining",
+    "aum":209542534.5300000012
   },
   {
     "name":"159231",
@@ -4284,15 +4284,6 @@
     "aum":194336298.1856000125
   },
   {
-    "name":"159159",
-    "description":"UBS SDIC CSI All Share Utilities Sector Index ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Utilities",
-    "niche":"Broad-based",
-    "aum":194313758.8054000139
-  },
-  {
     "name":"516130",
     "description":"Hwabao WP CSI Consumer Top Index ETF",
     "asset_class":"Equity",
@@ -4309,6 +4300,15 @@
     "focus":"Health care",
     "niche":"Broad-based",
     "aum":191276797.7414999902
+  },
+  {
+    "name":"159159",
+    "description":"UBS SDIC CSI All Share Utilities Sector Index ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Utilities",
+    "niche":"Broad-based",
+    "aum":189520824.7461999953
   },
   {
     "name":"560380",
@@ -4347,15 +4347,6 @@
     "aum":185058448.900000006
   },
   {
-    "name":"563210",
-    "description":"Fullgoal Hang Seng China A Specialised & Sophisticated Enterprises ETF",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":182752103.6999999881
-  },
-  {
     "name":"510030",
     "description":"Fortune SG SSE 180 Value ETF",
     "asset_class":"Equity",
@@ -4374,15 +4365,6 @@
     "aum":182009231.2199999988
   },
   {
-    "name":"159676",
-    "description":"Fullgoal Growth Enterprise Enhanced Strategy Exchange Traded Fund Units",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Growth",
-    "aum":181521433.9248000085
-  },
-  {
     "name":"588160",
     "description":"China Southern SSE STAR New Materials Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -4398,7 +4380,7 @@
     "category":"Size and style",
     "focus":"Large cap",
     "niche":"Broad-based",
-    "aum":181283230.0124999881
+    "aum":180285147.900000006
   },
   {
     "name":"588100",
@@ -4410,6 +4392,15 @@
     "aum":178130091.7824999988
   },
   {
+    "name":"159676",
+    "description":"Fullgoal Growth Enterprise Enhanced Strategy Exchange Traded Fund Units",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Growth",
+    "aum":177470477.3759999871
+  },
+  {
     "name":"159137",
     "description":"Huabao Csi Hong Kong Stock Connect Healthcare Theme ETF",
     "asset_class":"Equity",
@@ -4417,6 +4408,15 @@
     "focus":"Health care",
     "niche":"Broad-based",
     "aum":176284542.1676999927
+  },
+  {
+    "name":"563210",
+    "description":"Fullgoal Hang Seng China A Specialised & Sophisticated Enterprises ETF",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":174936303.099999994
   },
   {
     "name":"159960",
@@ -4590,6 +4590,15 @@
     "aum":157739951.0200000107
   },
   {
+    "name":"516910",
+    "description":"Fullgoal CSI Modern Logistics ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Industrials",
+    "niche":"Transportation",
+    "aum":157624840.4255000055
+  },
+  {
     "name":"159935",
     "description":"INVESCO GREAT WALL",
     "asset_class":"Equity",
@@ -4659,7 +4668,7 @@
     "category":"Sector",
     "focus":"Infrastructure",
     "niche":"Consumer",
-    "aum":151760610.5983999968
+    "aum":153016582.9776000082
   },
   {
     "name":"562900",
@@ -4698,15 +4707,6 @@
     "aum":146118727.0105000138
   },
   {
-    "name":"516910",
-    "description":"Fullgoal CSI Modern Logistics ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Industrials",
-    "niche":"Transportation",
-    "aum":144881021.5279999971
-  },
-  {
     "name":"159150",
     "description":"E Fund Shenzhen 50 Index ETF",
     "asset_class":"Equity",
@@ -4723,15 +4723,6 @@
     "focus":"Industrials",
     "niche":"Transportation",
     "aum":142343097.8084999919
-  },
-  {
-    "name":"159350",
-    "description":"Fullgoal Shenzhen Securities 50 ETF",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Total market",
-    "niche":"Broad-based",
-    "aum":141982409.0047999918
   },
   {
     "name":"510020",
@@ -4833,15 +4824,6 @@
     "aum":132584771.5044
   },
   {
-    "name":"159371",
-    "description":"Fullgoal ChiNext 50 ETF",
-    "asset_class":"Equity",
-    "category":"Size and style",
-    "focus":"Large cap",
-    "niche":"Broad-based",
-    "aum":132244602.0419999957
-  },
-  {
     "name":"159165",
     "description":"Maxwealth CSI Livestock Breeding Industry Index ETF",
     "asset_class":"Equity",
@@ -4849,6 +4831,15 @@
     "focus":"Consumer staples",
     "niche":"Unknown",
     "aum":131360390.5065000057
+  },
+  {
+    "name":"159350",
+    "description":"Fullgoal Shenzhen Securities 50 ETF",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":131333726.7709999979
   },
   {
     "name":"516190",
@@ -4869,31 +4860,13 @@
     "aum":129497932.2893999964
   },
   {
-    "name":"159132",
-    "description":"Fullgoal Hang Seng Biotechnology ETF Units",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Health care",
-    "niche":"Biotechnology",
-    "aum":128638565.6405999959
-  },
-  {
-    "name":"516750",
-    "description":"Fullgoal CSI All Share Construction Materials ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Materials",
-    "niche":"Broad-based",
-    "aum":127613651.9423999935
-  },
-  {
-    "name":"159385",
-    "description":"FULLGOAL FD MGT CO",
+    "name":"159371",
+    "description":"Fullgoal ChiNext 50 ETF",
     "asset_class":"Equity",
     "category":"Size and style",
-    "focus":"Total market",
+    "focus":"Large cap",
     "niche":"Broad-based",
-    "aum":127580289.7724999934
+    "aum":129035755.1620000005
   },
   {
     "name":"520850",
@@ -4905,6 +4878,15 @@
     "aum":127463327.4459999949
   },
   {
+    "name":"516750",
+    "description":"Fullgoal CSI All Share Construction Materials ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Materials",
+    "niche":"Broad-based",
+    "aum":125950451.4047999978
+  },
+  {
     "name":"159328",
     "description":"E Fund CSI Household Appliances Top Exchange Traded Fund Units",
     "asset_class":"Equity",
@@ -4914,6 +4896,15 @@
     "aum":125039238.0300000012
   },
   {
+    "name":"159385",
+    "description":"FULLGOAL FD MGT CO",
+    "asset_class":"Equity",
+    "category":"Size and style",
+    "focus":"Total market",
+    "niche":"Broad-based",
+    "aum":124222690.0349999964
+  },
+  {
     "name":"159976",
     "description":"ICBC Credit Suisse Guangdong-Hong Kong-Macao Greater Bay Area Innovation 100 Traded Open Index Securities Investment Fund",
     "asset_class":"Equity",
@@ -4921,6 +4912,15 @@
     "focus":"Total market",
     "niche":"Broad-based",
     "aum":124059215.2800000012
+  },
+  {
+    "name":"159132",
+    "description":"Fullgoal Hang Seng Biotechnology ETF Units",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Health care",
+    "niche":"Biotechnology",
+    "aum":122594145.3819999993
   },
   {
     "name":"159619",
@@ -4968,22 +4968,22 @@
     "aum":118085946.9252000004
   },
   {
-    "name":"561130",
-    "description":"Fullgoal CSI National Brands Project of Xinhua ETF",
-    "asset_class":"Equity",
-    "category":"Sector",
-    "focus":"Infrastructure",
-    "niche":"Consumer",
-    "aum":116601037.4114000052
-  },
-  {
     "name":"159933",
     "description":"UBS SDIC FUND MANA",
     "asset_class":"Equity",
     "category":"Size and style",
     "focus":"Total market",
     "niche":"Broad-based",
-    "aum":116043736.2356999964
+    "aum":117407596.0863000005
+  },
+  {
+    "name":"561130",
+    "description":"Fullgoal CSI National Brands Project of Xinhua ETF",
+    "asset_class":"Equity",
+    "category":"Sector",
+    "focus":"Infrastructure",
+    "niche":"Consumer",
+    "aum":115737503.7049999982
   },
   {
     "name":"159118",
@@ -5064,7 +5064,7 @@
     "category":"Size and style",
     "focus":"Large cap",
     "niche":"Broad-based",
-    "aum":109706259.4860000014
+    "aum":109031045.110499993
   },
   {
     "name":"560370",
@@ -5118,7 +5118,7 @@
     "category":"Size and style",
     "focus":"Total market",
     "niche":"Broad-based",
-    "aum":105144297.7129999995
+    "aum":103413547.1099999994
   },
   {
     "name":"159249",
